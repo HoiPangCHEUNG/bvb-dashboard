@@ -44,11 +44,11 @@ export const getReadOnlyClient = async (overrideRPC?: string) => {
   return readOnlyClient;
 };
 
-export const getMarkets = async (overrideRPC?: string) => {
+export const getMarkets = async () => {
   const marketCachePath = path.join(CACHE_DIR, "markets.json");
 
   const fetchMarkets = async () => {
-    const client = await getReadOnlyClient(overrideRPC);
+    const client = await getReadOnlyClient();
     const markets: { denom: string; display: unknown; enabled: boolean }[] =
       await client.queryContractSmart(BVBCONTRACT, {
         markets: {},
