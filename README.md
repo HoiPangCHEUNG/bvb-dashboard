@@ -7,12 +7,23 @@ A funding rate monitoring dashboard for BVB ([Bull vs. Bear](https://bullbear.zo
 ## Features
 
 - 📊 **Funding Rate Tracking**: Monitor funding rates across all BVB markets (updated every 15 minutes)
-- ⏱️ **Multiple Timeframes**: 15-minute, 1-hour, and 4-hour data views
-- 📈 **Interactive Charts**: Dynamic funding rate and open interest visualization
+- 📈 **Visualized Charts**: Dynamic funding rate and open interest visualization
 - 🚨 **Risk Analysis**: Market sentiment, squeeze potential, and concentration risk metrics
 - ⚡ **Automated Data Collection**: Cron job fetches data every 15 minutes
-- 💾 **Efficient Storage**: Hourly file splitting for optimal performance
-- 🔄 **Auto-restart**: PM2 process management for reliability
+
+## Screenshots
+
+### Main Dashboard Overview
+
+![Dashboard Overview](assets/dashboard-overview.png)
+
+_The main dashboard showing market sentiment analysis, risk dashboard, funding rate alerts, and squeeze potential analysis._
+
+### Charts and Analysis
+
+![Charts and Analysis](assets/charts-analysis.png)
+
+_Interactive funding rate trends and open interest analysis with time frame selection and detailed market data._
 
 ## Architecture
 
@@ -70,6 +81,8 @@ npm run cron
 # Start with PM2 (production)
 npm run cron:pm2
 ```
+
+> **⏰ First Run Notice**: On your first run, there won't be enough historical data to display meaningful charts and analysis. Start the cron scheduler and wait a few hours to collect sufficient data points. The dashboard will show more insights as data accumulates over time.
 
 ### Production Deployment
 
