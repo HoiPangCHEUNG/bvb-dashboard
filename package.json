@@ -1,27 +1,42 @@
 {
-  "name": "funding-rate-dashboard",
+  "name": "bvb-dashboard",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "fetch-rates": "npx tsx src/cron/fetchFundingRates.ts",
+    "cron": "npx tsx src/cron/scheduler.ts",
+    "cron:pm2": "pm2 start src/cron/scheduler.ts --name funding-rate-cron --interpreter tsx"
   },
   "dependencies": {
+    "@cosmjs/proto-signing": "^0.36.0",
+    "@types/node-cron": "^3.0.11",
+    "chart.js": "^4.5.0",
+    "next": "15.5.3",
     "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "next": "15.5.3"
+    "react-chartjs-2": "^5.3.0",
+    "react-dom": "19.1.0"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@cosmjs/cosmwasm-stargate": "^0.33.1",
+    "@cosmjs/stargate": "^0.33.1",
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
+    "axios": "^1.6.0",
+    "chain-registry": "^1.69.192",
+    "chalk": "^4.1.2",
+    "dotenv": "^16.5.0",
     "eslint": "^9",
     "eslint-config-next": "15.5.3",
-    "@eslint/eslintrc": "^3"
+    "node-cron": "^3.0.3",
+    "tailwindcss": "^4",
+    "tsx": "^4.20.5",
+    "typescript": "^5"
   }
 }
