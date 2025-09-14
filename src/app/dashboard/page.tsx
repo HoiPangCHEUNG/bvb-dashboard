@@ -8,6 +8,7 @@ import FundingRateAlerts from "../components/FundingRateAlerts";
 import TopFundingRatesTable from "../components/TopFundingRatesTable";
 import { getMarkets, getHistoricalFundingRates, getCurrentFundingRates } from "../utils/bvb";
 import DashboardClient from "../components/DashboardClient";
+import GitHubButton from "../components/GitHubButton";
 
 interface FundingRateEntry {
   fundingRate: number;
@@ -50,9 +51,12 @@ export default async function DashboardPage() {
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">
-          BVB Data Dashboard
-        </h1>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">
+            BVB Data Dashboard
+          </h1>
+          <GitHubButton url="https://github.com/HoiPangCHEUNG/bvb-dashboard" />
+        </div>
 
         {/* Risk Overview Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
