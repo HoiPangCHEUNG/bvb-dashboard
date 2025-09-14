@@ -154,7 +154,7 @@ export default function MarketSentiment({
         {/* Extreme Markets */}
         <div className="space-y-4 h-full flex flex-col">
           <h4 className="text-lg font-semibold text-gray-800 mb-3">
-            Extreme Markets
+            Extreme Market Count
           </h4>
 
           <div className="space-y-3 flex-1">
