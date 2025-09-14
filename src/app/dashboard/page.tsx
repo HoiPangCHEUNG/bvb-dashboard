@@ -8,7 +8,7 @@ import FundingRateAlerts from "../components/FundingRateAlerts";
 import TopFundingRatesTable from "../components/TopFundingRatesTable";
 import fs from "fs";
 import path from "path";
-import { getClient } from "../utils/bvb";
+import { getMarkets, getFundingRates } from "../utils/bvb";
 
 interface FundingRateEntry {
   fundingRate: number;
@@ -31,6 +31,8 @@ interface FundingRateData {
 export default async function DashboardPage() {
   // Only read the cached data, don't fetch new data
   // The cron job will handle fetching new data every 15 minutes
+
+  const markets = await getMarkets();
 
   // Read the funding rate data file
   const dataDir = "./data";

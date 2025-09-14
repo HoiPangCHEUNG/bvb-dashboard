@@ -1,17 +1,20 @@
-import { getClient, getFundingRates, getMarkets } from "../app/utils/bvb";
 import * as dotenv from "dotenv";
 
-// Load environment variables
+// Load environment variables BEFORE importing other modules
 dotenv.config();
+
+import { getFundingRates, getMarkets, getReadOnlyClient } from "../app/utils/bvb";
 
 async function fetchAndStoreFundingRates() {
   console.log(`[${new Date().toISOString()}] Starting funding rate fetch...`);
 
   try {
-    // Initialize client
-    const seed = process.env.SEED;
-    await getClient(seed);
-    console.log("Client initialized");
+    // Initialize client with override RPC
+    const overrideRPC = process.env.NEUTRON_RPC_URL;
+    if (overrideRPC) {
+      await getReadOnlyClient(overrideRPC);
+      console.log("Client initialized with override RPC:", overrideRPC);
+    }
 
     // Fetch markets
     await getMarkets();

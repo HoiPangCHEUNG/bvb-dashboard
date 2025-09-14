@@ -9,43 +9,26 @@ import {
   MARS,
   FUNDING_RATE_CACHE_TIME,
 } from "../constant/bvb";
-import { DirectSecp256k1HdWallet } from "@cosmjs/proto-signing";
-import { GasPrice } from "@cosmjs/stargate";
 import { chains } from "chain-registry";
-import { SigningCosmWasmClient } from "@cosmjs/cosmwasm-stargate";
+import { CosmWasmClient } from "@cosmjs/cosmwasm-stargate";
 
-let client: {
-  wallet: unknown;
-  signingClient: SigningCosmWasmClient;
-  myAddress: string;
-};
-const SEED = process.env.SEED;
+let readOnlyClient: CosmWasmClient;
 const chain = chains.find((chain) => chain.chain_name === "neutron");
 
-export const getClient = async (seedOverride?: string) => {
-  if (client) {
-    return client;
-  }
-
-  const useSeed = seedOverride || SEED;
-  if (!useSeed) {
-    throw new Error("No seed provided");
+export const getReadOnlyClient = async (overrideRPC?: string) => {
+  if (readOnlyClient) {
+    return readOnlyClient;
   }
 
   if (!chain) {
     throw new Error("Neutron chain not found in chain registry");
   }
 
-  const wallet = await DirectSecp256k1HdWallet.fromMnemonic(useSeed, {
-    prefix: "neutron",
-  });
-
-  const [{ address }] = await wallet.getAccounts();
-  const gasPrice = GasPrice.fromString(`0.0065${USDC_DENOM}`);
-  const options = { gasPrice };
   let useRPC;
 
-  if (OVERRIDE_RPC) {
+  if (overrideRPC) {
+    useRPC = overrideRPC;
+  } else if (OVERRIDE_RPC) {
     useRPC = OVERRIDE_RPC;
   } else {
     useRPC =
@@ -57,22 +40,17 @@ export const getClient = async (seedOverride?: string) => {
     throw new Error("No RPC endpoint available for Neutron");
   }
 
-  const signingClient = await SigningCosmWasmClient.connectWithSigner(
-    useRPC,
-    wallet,
-    options
-  );
-
-  client = { wallet, signingClient, myAddress: address };
-  return client;
+  readOnlyClient = await CosmWasmClient.connect(useRPC);
+  return readOnlyClient;
 };
 
-export const getMarkets = async () => {
+export const getMarkets = async (overrideRPC?: string) => {
   const marketCachePath = path.join(CACHE_DIR, "markets.json");
 
   const fetchMarkets = async () => {
+    const client = await getReadOnlyClient(overrideRPC);
     const markets: { denom: string; display: unknown; enabled: boolean }[] =
-      await client.signingClient.queryContractSmart(BVBCONTRACT, {
+      await client.queryContractSmart(BVBCONTRACT, {
         markets: {},
       });
 
@@ -146,7 +124,8 @@ export const getFundingRates = async () => {
     }
 
     // Fetch fresh funding rates
-    const rates = await client.signingClient.queryContractSmart(MARS.PERPS, {
+    const client = await getReadOnlyClient();
+    const rates = await client.queryContractSmart(MARS.PERPS, {
       markets: {
         limit: 50,
       },
