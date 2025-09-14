@@ -72,7 +72,7 @@ export default function MarketSentiment({
 
   return (
     <div className="bg-white rounded-lg shadow-lg border border-gray-100 p-6">
-      <h3 className="text-xl font-bold text-gray-900 mb-6 border-b pb-2">
+      <h3 className="text-xl font-bold text-gray-900 mb-4">
         Market Sentiment Analysis
       </h3>
 
