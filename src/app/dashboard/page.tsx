@@ -6,9 +6,8 @@ import OIConcentrationRisk from "../components/OIConcentrationRisk";
 import RiskDashboard from "../components/RiskDashboard";
 import FundingRateAlerts from "../components/FundingRateAlerts";
 import TopFundingRatesTable from "../components/TopFundingRatesTable";
-import fs from "fs";
-import path from "path";
-import { getMarkets, getFundingRates } from "../utils/bvb";
+import { getMarkets, getHistoricalFundingRates, getCurrentFundingRates } from "../utils/bvb";
+import DashboardClient from "../components/DashboardClient";
 
 interface FundingRateEntry {
   fundingRate: number;
@@ -22,34 +21,19 @@ interface HistoricalDataEntry {
   data: Record<string, FundingRateEntry>;
 }
 
-interface FundingRateData {
-  historicalData?: HistoricalDataEntry[];
-  lastUpdated?: number;
-  currentRates?: Record<string, FundingRateEntry>;
-}
-
 export default async function DashboardPage() {
   // Only read the cached data, don't fetch new data
   // The cron job will handle fetching new data every 15 minutes
 
   const markets = await getMarkets();
 
-  // Read the funding rate data file
-  const dataDir = "./data";
-  const fundingRateFile = path.join(dataDir, "funding-rates.json");
+  // Get historical data for different timeframes (last 10 hours for demo)
+  const historicalData15min = getHistoricalFundingRates(10, '15min');
+  const historicalData1hour = getHistoricalFundingRates(10, '1hour');
+  const historicalData4hour = getHistoricalFundingRates(10, '4hour');
 
-  let fundingData: FundingRateData = {};
-  if (fs.existsSync(fundingRateFile)) {
-    try {
-      const fileContent = fs.readFileSync(fundingRateFile, "utf8");
-      fundingData = JSON.parse(fileContent);
-    } catch (err) {
-      console.error("Error reading funding rate data:", err);
-    }
-  }
-
-  const historicalData = fundingData.historicalData || [];
-  const currentRates = fundingData.currentRates || {};
+  // Get current rates from the latest hourly file
+  const currentRates = getCurrentFundingRates();
 
   // Default selected markets for the funding rate chart
   const defaultChartMarkets = [
@@ -75,14 +59,14 @@ export default async function DashboardPage() {
           <MarketSentiment currentRates={currentRates} />
           <RiskDashboard
             currentRates={currentRates}
-            historicalData={historicalData}
+            historicalData={historicalData15min}
           />
         </div>
 
         {/* Alerts Section */}
         <div className="mb-8">
           <FundingRateAlerts
-            historicalData={historicalData}
+            historicalData={historicalData15min}
             currentRates={currentRates}
           />
         </div>
@@ -93,28 +77,15 @@ export default async function DashboardPage() {
           <OIConcentrationRisk currentRates={currentRates} />
         </div>
 
-        {/* Charts Section */}
-        <div className="grid grid-cols-1 gap-8">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              Funding Rate Trends
-            </h2>
-            <FundingRateChart
-              historicalData={historicalData}
-              initialSelectedMarkets={defaultChartMarkets}
-            />
-          </div>
-
-          <div>
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              Open Interest Analysis
-            </h2>
-            <OpenInterestChart
-              historicalData={historicalData}
-              initialSelectedMarket={defaultOIMarket}
-            />
-          </div>
-        </div>
+        {/* TimeFrame Selector and Charts */}
+        <DashboardClient
+          historicalData15min={historicalData15min}
+          historicalData1hour={historicalData1hour}
+          historicalData4hour={historicalData4hour}
+          currentRates={currentRates}
+          defaultChartMarkets={defaultChartMarkets}
+          defaultOIMarket={defaultOIMarket}
+        />
 
         {/* Top Funding Rates Table */}
         <div className="mt-8">

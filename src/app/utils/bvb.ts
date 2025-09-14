@@ -82,45 +82,60 @@ interface HistoricalDataEntry {
   data: Record<string, FundingRateEntry>;
 }
 
-interface FundingRateData {
-  historicalData?: HistoricalDataEntry[];
-  lastUpdated?: number;
-  currentRates?: Record<string, FundingRateEntry>;
+interface HourlyFundingData {
+  entries: HistoricalDataEntry[];
+  hourStart: number;
 }
+
+const getHourlyFilePath = (timestamp: number): string => {
+  const date = new Date(timestamp);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hour = String(date.getHours()).padStart(2, '0');
+
+  return path.join("./data", `${year}-${month}-${day}-${hour}.json`);
+};
+
+const getHourStart = (timestamp: number): number => {
+  const date = new Date(timestamp);
+  date.setMinutes(0, 0, 0);
+  return date.getTime();
+};
 
 export const getFundingRates = async () => {
   const dataDir = "./data";
-  const fundingRateFile = path.join(dataDir, "funding-rates.json");
 
   // Ensure data directory exists
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
   }
 
+  const now = Date.now();
+  const currentHourlyFile = getHourlyFilePath(now);
+  const hourStart = getHourStart(now);
+
   try {
-    // Read existing data if file exists
-    let existingData: FundingRateData = {};
-    if (fs.existsSync(fundingRateFile)) {
+    // Read existing hourly data if file exists
+    let hourlyData: HourlyFundingData = {
+      entries: [],
+      hourStart: hourStart
+    };
+
+    if (fs.existsSync(currentHourlyFile)) {
       try {
-        const fileContent = fs.readFileSync(fundingRateFile, "utf8");
-        existingData = JSON.parse(fileContent);
+        const fileContent = fs.readFileSync(currentHourlyFile, "utf8");
+        hourlyData = JSON.parse(fileContent);
       } catch (err) {
-        console.log(
-          "Error reading existing funding rates, starting fresh:",
-          err
-        );
-        existingData = {};
+        console.log("Error reading existing hourly data, starting fresh:", err);
       }
     }
 
-    // Check if we need to fetch new data based on cache time
-    const now = Date.now();
-    if (
-      existingData.lastUpdated &&
-      now - existingData.lastUpdated < FUNDING_RATE_CACHE_TIME
-    ) {
+    // Check if we need to fetch new data (15 minute cache)
+    const lastEntry = hourlyData.entries[hourlyData.entries.length - 1];
+    if (lastEntry && now - lastEntry.timestamp < FUNDING_RATE_CACHE_TIME) {
       console.log("Using cached funding rates");
-      return existingData.currentRates || {};
+      return lastEntry.data;
     }
 
     // Fetch fresh funding rates
@@ -142,43 +157,26 @@ export const getFundingRates = async () => {
       };
     }
 
-    // Prepare the updated data structure
-    // Initialize with existing data or create new structure
-    if (!existingData.historicalData) {
-      existingData.historicalData = [];
-    }
-
-    // Add new funding rates as a new entry in historical data
-    existingData.historicalData.push({
+    // Add new entry to hourly data
+    hourlyData.entries.push({
       timestamp: now,
       data: fundingData,
     });
 
-    // Keep only last 100 entries to prevent file from growing too large
-    if (existingData.historicalData.length > 100) {
-      existingData.historicalData = existingData.historicalData.slice(-100);
-    }
-
-    // Update the existing data with new funding rates
-    const updatedData: FundingRateData = {
-      ...existingData,
-      lastUpdated: now,
-      currentRates: fundingData, // Keep current rates for quick access
-    };
-
-    // Write updated data back to file
-    fs.writeFileSync(fundingRateFile, JSON.stringify(updatedData, null, 2));
+    // Write updated hourly data back to file
+    fs.writeFileSync(currentHourlyFile, JSON.stringify(hourlyData, null, 2));
 
     return fundingData;
   } catch (err) {
     console.error("Error fetching funding rates:", err);
 
-    // Try to return cached data if available
-    if (fs.existsSync(fundingRateFile)) {
+    // Try to return latest cached data from current hour file
+    if (fs.existsSync(currentHourlyFile)) {
       try {
-        const fileContent = fs.readFileSync(fundingRateFile, "utf8");
-        const cachedData = JSON.parse(fileContent);
-        return cachedData.fundingRates || {};
+        const fileContent = fs.readFileSync(currentHourlyFile, "utf8");
+        const cachedData: HourlyFundingData = JSON.parse(fileContent);
+        const lastEntry = cachedData.entries[cachedData.entries.length - 1];
+        return lastEntry?.data || {};
       } catch (cacheErr) {
         console.error("Error reading cache:", cacheErr);
       }
@@ -186,6 +184,102 @@ export const getFundingRates = async () => {
 
     return {};
   }
+};
+
+export type TimeFrame = '15min' | '1hour' | '4hour';
+
+export const getHistoricalFundingRates = (
+  hoursBack: number = 24,
+  timeFrame: TimeFrame = '15min'
+): HistoricalDataEntry[] => {
+  const now = Date.now();
+  const allEntries: HistoricalDataEntry[] = [];
+
+  // Get data from the last N hours
+  for (let i = 0; i < hoursBack; i++) {
+    const hourTimestamp = now - (i * 60 * 60 * 1000); // Go back i hours
+    const filePath = getHourlyFilePath(hourTimestamp);
+
+    if (fs.existsSync(filePath)) {
+      try {
+        const fileContent = fs.readFileSync(filePath, "utf8");
+        const hourlyData: HourlyFundingData = JSON.parse(fileContent);
+        allEntries.push(...hourlyData.entries);
+      } catch (err) {
+        console.log(`Error reading hourly file ${filePath}:`, err);
+      }
+    }
+  }
+
+  // Sort by timestamp (oldest first)
+  const sortedEntries = allEntries.sort((a, b) => a.timestamp - b.timestamp);
+
+  // Apply timeframe filtering
+  return filterByTimeFrame(sortedEntries, timeFrame);
+};
+
+const filterByTimeFrame = (entries: HistoricalDataEntry[], timeFrame: TimeFrame): HistoricalDataEntry[] => {
+  if (entries.length === 0) return [];
+
+  switch (timeFrame) {
+    case '15min':
+      // Show all entries (every 15 minutes)
+      return entries;
+
+    case '1hour':
+      // Show first entry of each hour
+      const hourlyEntries: HistoricalDataEntry[] = [];
+      const seenHours = new Set<string>();
+
+      entries.forEach(entry => {
+        const hourKey = new Date(entry.timestamp).toISOString().slice(0, 13); // YYYY-MM-DDTHH
+        if (!seenHours.has(hourKey)) {
+          seenHours.add(hourKey);
+          hourlyEntries.push(entry);
+        }
+      });
+
+      return hourlyEntries;
+
+    case '4hour':
+      // Show first entry every 4 hours
+      const fourHourlyEntries: HistoricalDataEntry[] = [];
+      const seenFourHourBlocks = new Set<string>();
+
+      entries.forEach(entry => {
+        const date = new Date(entry.timestamp);
+        const fourHourBlock = Math.floor(date.getHours() / 4);
+        const blockKey = `${date.toISOString().slice(0, 10)}-${fourHourBlock}`; // YYYY-MM-DD-0/1/2/3/4/5
+
+        if (!seenFourHourBlocks.has(blockKey)) {
+          seenFourHourBlocks.add(blockKey);
+          fourHourlyEntries.push(entry);
+        }
+      });
+
+      return fourHourlyEntries;
+
+    default:
+      return entries;
+  }
+};
+
+export const getCurrentFundingRates = (): Record<string, FundingRateEntry> => {
+  const now = Date.now();
+  const currentHourlyFile = getHourlyFilePath(now);
+
+  if (fs.existsSync(currentHourlyFile)) {
+    try {
+      const fileContent = fs.readFileSync(currentHourlyFile, "utf8");
+      const hourlyData: HourlyFundingData = JSON.parse(fileContent);
+      const lastEntry = hourlyData.entries[hourlyData.entries.length - 1];
+      return lastEntry?.data || {};
+    } catch (err) {
+      console.error("Error reading current rates:", err);
+    }
+  }
+
+  return {};
 };
 
 export const saveData = async (
