@@ -2,8 +2,6 @@
 
 A funding rate monitoring dashboard for BVB ([Bull vs. Bear](https://bullbear.zone/)) markets on Neutron blockchain. Features automated data collection every 15 minutes, multiple timeframes, and comprehensive risk analysis. No wallet or whatsoever needed, just install and run.
 
-[![Dashboard Screenshot](./screenshot.png)](https://bullbear.zone/)
-
 > **Disclaimer**: This is a fan-made project. The author/maintainers have no affiliation with the BvB platform itself.
 
 ## Features
