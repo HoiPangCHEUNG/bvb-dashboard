@@ -6,7 +6,11 @@ import OIConcentrationRisk from "../components/OIConcentrationRisk";
 import RiskDashboard from "../components/RiskDashboard";
 import FundingRateAlerts from "../components/FundingRateAlerts";
 import TopFundingRatesTable from "../components/TopFundingRatesTable";
-import { getMarkets, getHistoricalFundingRates, getCurrentFundingRates } from "../utils/bvb";
+import {
+  getMarkets,
+  getHistoricalFundingRates,
+  getCurrentFundingRates,
+} from "../utils/bvb";
 import DashboardClient from "../components/DashboardClient";
 import GitHubButton from "../components/GitHubButton";
 
@@ -29,9 +33,9 @@ export default async function DashboardPage() {
   const markets = await getMarkets();
 
   // Get historical data for different timeframes (last 10 hours for demo)
-  const historicalData15min = getHistoricalFundingRates(10, '15min');
-  const historicalData1hour = getHistoricalFundingRates(10, '1hour');
-  const historicalData4hour = getHistoricalFundingRates(10, '4hour');
+  const historicalData15min = getHistoricalFundingRates(12, "15min");
+  const historicalData1hour = getHistoricalFundingRates(24, "1hour");
+  const historicalData4hour = getHistoricalFundingRates(48, "4hour");
 
   // Get current rates from the latest hourly file
   const currentRates = getCurrentFundingRates();
