@@ -1,5 +1,5 @@
-import FundingRateChart from "../components/FundingRateChart";
-import OpenInterestChart from "../components/OpenInterestChart";
+// import FundingRateChart from "../components/FundingRateChart";
+// import OpenInterestChart from "../components/OpenInterestChart";
 import MarketSentiment from "../components/MarketSentiment";
 import SqueezePotential from "../components/SqueezePotential";
 import OIConcentrationRisk from "../components/OIConcentrationRisk";
@@ -7,38 +7,20 @@ import RiskDashboard from "../components/RiskDashboard";
 import FundingRateAlerts from "../components/FundingRateAlerts";
 import TopFundingRatesTable from "../components/TopFundingRatesTable";
 import {
-  getMarkets,
   getHistoricalFundingRates,
   getCurrentFundingRates,
 } from "../utils/bvb";
 import DashboardClient from "../components/DashboardClient";
 import GitHubButton from "../components/GitHubButton";
 
-interface FundingRateEntry {
-  fundingRate: number;
-  longOI: string;
-  shortOI: string;
-  timestamp: number;
-}
-
-interface HistoricalDataEntry {
-  timestamp: number;
-  data: Record<string, FundingRateEntry>;
-}
-
 export default async function DashboardPage() {
-  // Only read the cached data, don't fetch new data
-  // The cron job will handle fetching new data every 15 minutes
+  // Get historical data for different timeframes
+  const historicalData15min = await getHistoricalFundingRates(12, "15min");
+  const historicalData1hour = await getHistoricalFundingRates(24, "1hour");
+  const historicalData4hour = await getHistoricalFundingRates(48, "4hour");
 
-  const markets = await getMarkets();
-
-  // Get historical data for different timeframes (last 10 hours for demo)
-  const historicalData15min = getHistoricalFundingRates(12, "15min");
-  const historicalData1hour = getHistoricalFundingRates(24, "1hour");
-  const historicalData4hour = getHistoricalFundingRates(48, "4hour");
-
-  // Get current rates from the latest hourly file
-  const currentRates = getCurrentFundingRates();
+  // Get current rates from MongoDB
+  const currentRates = await getCurrentFundingRates();
 
   // Default selected markets for the funding rate chart
   const defaultChartMarkets = [
