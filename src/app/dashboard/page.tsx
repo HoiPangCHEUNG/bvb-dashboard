@@ -1,5 +1,3 @@
-// import FundingRateChart from "../components/FundingRateChart";
-// import OpenInterestChart from "../components/OpenInterestChart";
 import MarketSentiment from "../components/MarketSentiment";
 import SqueezePotential from "../components/SqueezePotential";
 import OIConcentrationRisk from "../components/OIConcentrationRisk";

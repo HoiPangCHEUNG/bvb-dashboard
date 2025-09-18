@@ -107,6 +107,8 @@ interface HistoricalDataEntry {
   data: Record<string, FundingRateEntry>;
 }
 
+// the current funding rates method is not optimized
+// will fix it in the next pull request
 export const getFundingRates = async () => {
   try {
     // Check if we need to fetch new data (15 minute cache)
