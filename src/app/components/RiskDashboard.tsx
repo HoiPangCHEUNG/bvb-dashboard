@@ -345,7 +345,9 @@ export default function RiskDashboard({
 
       <div className="mt-auto p-3 bg-yellow-50 rounded-lg">
         <p className="text-xs text-yellow-800">
-          ⚠️ Overall Risk Score (0-100) = OI Imbalance (25%) + Extreme Funding Markets (25%) + Imbalanced Markets (25%) + Volatility (25%). Higher scores indicate increased probability of violent market moves.
+          ⚠️ Overall Risk Score (0-100) = OI Imbalance (25%) + Extreme Funding
+          Markets (25%) + Imbalanced Markets (25%) + Volatility (25%). Higher
+          scores indicate increased probability of violent market moves.
         </p>
       </div>
     </div>
