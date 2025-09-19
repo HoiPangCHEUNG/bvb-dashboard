@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   FundingRateEntry,
   HistoricalDataEntry,
@@ -13,6 +13,10 @@ interface OIConcentrationRiskProps {
 export default function OIConcentrationRisk({
   currentRates,
 }: OIConcentrationRiskProps) {
+  const [question, setQuestion] = useState("");
+  const [response, setResponse] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [showAnalysis, setShowAnalysis] = useState(false);
   // Calculate OI concentration for each market
   const calculateConcentration = (market: string, rate: FundingRateEntry) => {
     const longOI = parseFloat(rate.longOI) / 1e6;
@@ -92,6 +96,43 @@ export default function OIConcentrationRisk({
     (d) => d!.concentration > 90
   ).length;
 
+  const analyzeData = async () => {
+    if (!question.trim()) return;
+
+    setIsLoading(true);
+    setResponse("");
+    setShowAnalysis(true);
+
+    try {
+      const res = await fetch("/api/analyze-data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          data: concentrationData,
+          question,
+          dataType: "concentration",
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to analyze");
+
+      const reader = res.body?.getReader();
+      if (!reader) return;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = new TextDecoder().decode(value);
+        setResponse((prev) => prev + chunk);
+      }
+    } catch (error) {
+      setResponse("Error analyzing data. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -113,6 +154,44 @@ export default function OIConcentrationRisk({
           </p>
           <p className="text-xs text-purple-700">&gt;90% Concentration</p>
         </div>
+      </div>
+
+      <div className="mb-4 border-t pt-4">
+        <div className="flex items-center gap-2 mb-3">
+          <input
+            type="text"
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            placeholder="Ask about the concentration data..."
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-600 text-gray-900"
+            onKeyDown={(e) => e.key === "Enter" && analyzeData()}
+          />
+          <button
+            onClick={analyzeData}
+            disabled={isLoading || !question.trim()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? "Analyzing..." : "Ask AI"}
+          </button>
+        </div>
+
+        {showAnalysis && (
+          <div className="bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="font-medium text-gray-900">AI Analysis</h4>
+              <button
+                onClick={() => setShowAnalysis(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="text-sm text-gray-700 whitespace-pre-wrap">
+              {response || (isLoading && "Analyzing your data...")}
+              {isLoading && <span className="animate-pulse">▋</span>}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="overflow-x-auto overflow-y-visible">
