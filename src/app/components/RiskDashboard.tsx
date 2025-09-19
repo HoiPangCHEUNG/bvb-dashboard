@@ -5,6 +5,7 @@ import {
   FundingRateEntry,
   HistoricalDataEntry,
 } from "../types/dashboardClient";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface RiskDashboardProps {
   currentRates: HistoricalDataEntry;
@@ -172,15 +173,18 @@ export default function RiskDashboard({
   ).toFixed(2);
 
   return (
-    <div className="bg-white rounded-lg shadow p-6 flex flex-col">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">
-        Risk Dashboard
-      </h3>
+    <Card className="flex flex-col">
+      <CardHeader>
+        <CardTitle className="text-lg">
+          Risk Dashboard
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
 
       {/* Overall Risk Score */}
-      <div className="mb-6">
+      <div>
         <div className="flex items-center justify-between mb-2">
-          <h4 className="text-sm font-medium text-gray-700 italic">
+          <h4 className="text-sm font-medium text-muted-foreground italic">
             Overall Market Risk
           </h4>
           <span className={`text-lg font-bold ${riskLevel.textColor}`}>
@@ -198,11 +202,11 @@ export default function RiskDashboard({
       </div>
 
       {/* Risk Metrics Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-gray-50 rounded-lg p-3">
           <div className="flex items-start mb-1">
             <div className="relative group ml-1">
-              <p className="text-xs text-gray-600 cursor-help">
+              <p className="text-xs text-muted-foreground cursor-help">
                 OI Imbalance ⓘ
               </p>
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
@@ -210,14 +214,14 @@ export default function RiskDashboard({
               </div>
             </div>
           </div>
-          <p className="text-lg font-bold text-gray-900">
+          <p className="text-lg font-bold">
             {metrics.oiImbalance.toFixed(1)}%
           </p>
         </div>
         <div className="bg-gray-50 rounded-lg p-3">
           <div className="flex items-start mb-1">
             <div className="relative group ml-1">
-              <p className="text-xs text-gray-600 cursor-help">
+              <p className="text-xs text-muted-foreground cursor-help">
                 Extreme Funding ⓘ
               </p>
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
@@ -225,14 +229,14 @@ export default function RiskDashboard({
               </div>
             </div>
           </div>
-          <p className="text-lg font-bold text-gray-900">
+          <p className="text-lg font-bold">
             {metrics.extremeFundingCount} markets
           </p>
         </div>
         <div className="bg-gray-50 rounded-lg p-3">
           <div className="flex items-start mb-1">
             <div className="relative group ml-1">
-              <p className="text-xs text-gray-600 cursor-help">
+              <p className="text-xs text-muted-foreground cursor-help">
                 Imbalanced OI ⓘ
               </p>
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
@@ -240,14 +244,14 @@ export default function RiskDashboard({
               </div>
             </div>
           </div>
-          <p className="text-lg font-bold text-gray-900">
+          <p className="text-lg font-bold">
             {metrics.imbalancedMarkets} markets
           </p>
         </div>
         <div className="bg-gray-50 rounded-lg p-3">
           <div className="flex items-start mb-1">
             <div className="relative group ml-1">
-              <p className="text-xs text-gray-600 cursor-help">
+              <p className="text-xs text-muted-foreground cursor-help">
                 Volatility Score ⓘ
               </p>
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
@@ -255,15 +259,15 @@ export default function RiskDashboard({
               </div>
             </div>
           </div>
-          <p className="text-lg font-bold text-gray-900">
+          <p className="text-lg font-bold">
             {metrics.volatilityScore.toFixed(1)}
           </p>
         </div>
       </div>
 
       {/* Total OI Distribution */}
-      <div className="mb-6">
-        <h4 className="text-sm font-medium text-gray-700 mb-2 italic">
+      <div>
+        <h4 className="text-sm font-medium text-muted-foreground mb-2 italic">
           Total Open Interest Distribution
         </h4>
         <div className="flex items-center space-x-2">
@@ -301,8 +305,8 @@ export default function RiskDashboard({
       </div>
 
       {/* Highest Risk Markets */}
-      <div className="mb-4">
-        <h4 className="text-sm font-medium text-gray-700 mb-2 italic">
+      <div>
+        <h4 className="text-sm font-medium text-muted-foreground mb-2 italic">
           Highest Risk Markets
         </h4>
         <div className="space-y-2">
@@ -311,7 +315,7 @@ export default function RiskDashboard({
               key={item!.market}
               className="flex items-center justify-between py-1"
             >
-              <span className="text-sm font-bold text-gray-900">
+              <span className="text-sm font-bold">
                 {item!.market.replace("perps/", "").toUpperCase()}
               </span>
               <div className="flex items-center">
@@ -329,7 +333,7 @@ export default function RiskDashboard({
                     style={{ width: `${item!.risk}%` }}
                   />
                 </div>
-                <span className="text-xs text-gray-600">{item!.risk}%</span>
+                <span className="text-xs text-muted-foreground">{item!.risk}%</span>
               </div>
             </div>
           ))}
@@ -343,6 +347,7 @@ export default function RiskDashboard({
           scores indicate increased probability of violent market moves.
         </p>
       </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

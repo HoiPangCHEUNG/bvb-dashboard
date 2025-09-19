@@ -1,10 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   FundingRateEntry,
   HistoricalDataEntry,
 } from "../types/dashboardClient";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface OIConcentrationRiskProps {
   currentRates: HistoricalDataEntry;
@@ -13,6 +14,10 @@ interface OIConcentrationRiskProps {
 export default function OIConcentrationRisk({
   currentRates,
 }: OIConcentrationRiskProps) {
+  const [question, setQuestion] = useState("");
+  const [response, setResponse] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [showAnalysis, setShowAnalysis] = useState(false);
   // Calculate OI concentration for each market
   const calculateConcentration = (market: string, rate: FundingRateEntry) => {
     const longOI = parseFloat(rate.longOI) / 1e6;
@@ -92,13 +97,52 @@ export default function OIConcentrationRisk({
     (d) => d!.concentration > 90
   ).length;
 
-  return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">
-        OI Concentration Risk Analysis
-      </h3>
+  const analyzeData = async () => {
+    if (!question.trim()) return;
 
-      <div className="mb-4 grid grid-cols-3 gap-4">
+    setIsLoading(true);
+    setResponse("");
+    setShowAnalysis(true);
+
+    try {
+      const res = await fetch("/api/analyze-data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          data: concentrationData,
+          question,
+          dataType: "concentration",
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to analyze");
+
+      const reader = res.body?.getReader();
+      if (!reader) return;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = new TextDecoder().decode(value);
+        setResponse((prev) => prev + chunk);
+      }
+    } catch (error) {
+      setResponse("Error analyzing data. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">
+          OI Concentration Risk Analysis
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+      <div className="grid grid-cols-3 gap-4">
         <div className="bg-red-50 rounded-lg p-3">
           <p className="text-2xl font-bold text-red-600">{criticalRisk}</p>
           <p className="text-xs text-red-700">Critical Risk Markets</p>
@@ -115,31 +159,69 @@ export default function OIConcentrationRisk({
         </div>
       </div>
 
+      <div className="mb-4 border-t pt-4">
+        <div className="flex items-center gap-2 mb-3">
+          <input
+            type="text"
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            placeholder="Ask about the concentration data..."
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-muted-foreground"
+            onKeyDown={(e) => e.key === "Enter" && analyzeData()}
+          />
+          <button
+            onClick={analyzeData}
+            disabled={isLoading || !question.trim()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? "Analyzing..." : "Ask AI"}
+          </button>
+        </div>
+
+        {showAnalysis && (
+          <div className="bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="font-medium">AI Analysis</h4>
+              <button
+                onClick={() => setShowAnalysis(false)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="text-sm whitespace-pre-wrap">
+              {response || (isLoading && "Analyzing your data...")}
+              {isLoading && <span className="animate-pulse">▋</span>}
+            </div>
+          </div>
+        )}
+      </div>
+
       <div className="overflow-x-auto overflow-y-visible">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50 relative">
             <tr>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">
                 Market
               </th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">
                 Concentration
               </th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">
                 OI Distribution
               </th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">
                 <div className="flex items-start">
                   <span>Funding</span>
                   <div className="relative group ml-1">
-                    <span className="text-xs text-gray-400 cursor-help">ⓘ</span>
+                    <span className="text-xs text-muted-foreground cursor-help">ⓘ</span>
                     <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50 normal-case">
                       ⚠️ indicates funding direction opposes OI dominance
                     </div>
                   </div>
                 </div>
               </th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+              <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase">
                 Risk Level
               </th>
             </tr>
@@ -149,12 +231,12 @@ export default function OIConcentrationRisk({
               const risk = getRiskLabel(data!.riskScore);
               return (
                 <tr key={data!.market} className="hover:bg-gray-50">
-                  <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <td className="px-3 py-2 whitespace-nowrap text-sm font-medium">
                     {data!.market.replace("perps/", "").toUpperCase()}
                   </td>
                   <td className="px-3 py-2 whitespace-nowrap text-sm">
                     <div className="flex items-center">
-                      <span className="font-semibold mr-2 text-gray-400">
+                      <span className="font-semibold mr-2 text-muted-foreground">
                         {data!.concentration.toFixed(1)}%
                       </span>
                       <span
@@ -188,7 +270,7 @@ export default function OIConcentrationRisk({
                           />
                         </div>
                       </div>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-muted-foreground">
                         {data!.ratio > 1000
                           ? "∞"
                           : `${data!.ratio.toFixed(1)}x`}
@@ -234,12 +316,13 @@ export default function OIConcentrationRisk({
         </table>
       </div>
 
-      <div className="mt-4 text-xs text-gray-500">
+      <div className="text-xs text-muted-foreground">
         <p>
           ⓘ Markets with high OI concentration are prone to violent moves when
           positions unwind
         </p>
       </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

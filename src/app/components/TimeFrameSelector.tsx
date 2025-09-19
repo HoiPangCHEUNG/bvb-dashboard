@@ -2,6 +2,8 @@
 
 import React from "react";
 import { TimeFrame } from "../../services/bvb";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface TimeFrameSelectorProps {
   selectedTimeFrame: TimeFrame;
@@ -35,24 +37,34 @@ export default function TimeFrameSelector({
   ];
 
   return (
-    <div className="bg-white rounded-lg shadow p-4 mb-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-3">Time Frame</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {timeFrameOptions.map((option) => (
-          <button
-            key={option.value}
-            onClick={() => onTimeFrameChange(option.value)}
-            className={`p-3 rounded-lg border-2 text-left transition-colors ${
-              selectedTimeFrame === option.value
-                ? "border-blue-500 bg-blue-50 text-blue-900"
-                : "border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300"
-            }`}
-          >
-            <div className="font-medium">{option.label}</div>
-            <div className="text-sm opacity-75 mt-1">{option.description}</div>
-          </button>
-        ))}
-      </div>
-    </div>
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle>Time Frame</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Tabs
+          value={selectedTimeFrame}
+          onValueChange={(value) => onTimeFrameChange(value as TimeFrame)}
+          className="w-full"
+        >
+          <TabsList className="grid w-full grid-cols-3 h-auto">
+            {timeFrameOptions.map((option) => (
+              <TabsTrigger
+                key={option.value}
+                value={option.value}
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground h-auto py-3 px-2"
+              >
+                <div className="text-center w-full">
+                  <div className="font-medium text-sm">{option.label}</div>
+                  <div className="text-xs opacity-75 mt-1 leading-tight">
+                    {option.description}
+                  </div>
+                </div>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      </CardContent>
+    </Card>
   );
 }
