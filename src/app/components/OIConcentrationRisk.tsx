@@ -1,16 +1,13 @@
 "use client";
 
 import React from "react";
-
-interface FundingRateEntry {
-  fundingRate: number;
-  longOI: string;
-  shortOI: string;
-  timestamp: number;
-}
+import {
+  FundingRateEntry,
+  HistoricalDataEntry,
+} from "../types/dashboardClient";
 
 interface OIConcentrationRiskProps {
-  currentRates: Record<string, FundingRateEntry>;
+  currentRates: HistoricalDataEntry;
 }
 
 export default function OIConcentrationRisk({
@@ -64,7 +61,7 @@ export default function OIConcentrationRisk({
     };
   };
 
-  const concentrationData = Object.entries(currentRates)
+  const concentrationData = Object.entries(currentRates.data)
     .map(([market, rate]) => calculateConcentration(market, rate))
     .filter((data) => data !== null && data.totalOI > 0)
     .sort((a, b) => b!.concentration - a!.concentration)

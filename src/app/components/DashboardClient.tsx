@@ -6,24 +6,13 @@ import TimeFrameSelector from "./TimeFrameSelector";
 import FundingRateChart from "./FundingRateChart";
 import OpenInterestChart from "./OpenInterestChart";
 import FundingRateAlerts from "./FundingRateAlerts";
-
-interface FundingRateEntry {
-  fundingRate: number;
-  longOI: string;
-  shortOI: string;
-  timestamp: number;
-}
-
-interface HistoricalDataEntry {
-  timestamp: number;
-  data: Record<string, FundingRateEntry>;
-}
+import { HistoricalDataEntry } from "../types/dashboardClient";
 
 interface DashboardClientProps {
   historicalData15min: HistoricalDataEntry[];
   historicalData1hour: HistoricalDataEntry[];
   historicalData4hour: HistoricalDataEntry[];
-  currentRates: Record<string, FundingRateEntry>;
+  currentRates: HistoricalDataEntry;
   defaultChartMarkets: string[];
   defaultOIMarket: string;
 }

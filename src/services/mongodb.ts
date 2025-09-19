@@ -97,22 +97,6 @@ export async function insertFundingRate(
   await fundingRatesCollection.createIndex({ createdAt: -1 });
 }
 
-export async function getLatestFundingRate(): Promise<Record<
-  string,
-  FundingRateEntry
-> | null> {
-  const db = await getDatabase();
-  const fundingRatesCollection =
-    db.collection<FundingRateDocument>("funding_rates");
-
-  const latest = await fundingRatesCollection.findOne(
-    {},
-    { sort: { timestamp: -1 } }
-  );
-
-  return latest?.data || null;
-}
-
 export async function getFundingRatesInRange(
   startTime: number,
   endTime?: number
@@ -162,75 +146,4 @@ export async function getLatestFundingRateWithCache(
     data: latest.data,
     fromCache: isFromCache,
   };
-}
-
-export async function getEntriesCountInLastHours(
-  hours: number
-): Promise<number> {
-  const db = await getDatabase();
-  const fundingRatesCollection =
-    db.collection<FundingRateDocument>("funding_rates");
-
-  const since = Date.now() - hours * 60 * 60 * 1000;
-  const count = await fundingRatesCollection.countDocuments({
-    timestamp: { $gte: since },
-  });
-
-  return count;
-}
-
-export async function getHourlyAggregatedData(
-  startTime: number,
-  endTime?: number
-): Promise<
-  Array<{
-    hour: string;
-    entries: number;
-    latestData: Record<string, FundingRateEntry>;
-  }>
-> {
-  const db = await getDatabase();
-  const fundingRatesCollection =
-    db.collection<FundingRateDocument>("funding_rates");
-
-  const match: { timestamp: { $gte: number; $lte?: number } } = {
-    timestamp: { $gte: startTime },
-  };
-  if (endTime) {
-    match.timestamp.$lte = endTime;
-  }
-
-  const result = await fundingRatesCollection
-    .aggregate<{
-      hour: string;
-      entries: number;
-      latestData: Record<string, FundingRateEntry>;
-    }>([
-      { $match: match },
-      {
-        $group: {
-          _id: {
-            $dateToString: {
-              format: "%Y-%m-%d-%H",
-              date: { $toDate: "$timestamp" },
-            },
-          },
-          entries: { $sum: 1 },
-          latestTimestamp: { $max: "$timestamp" },
-          latestData: { $last: "$data" },
-        },
-      },
-      { $sort: { _id: 1 } },
-      {
-        $project: {
-          hour: "$_id",
-          entries: 1,
-          latestData: 1,
-          _id: 0,
-        },
-      },
-    ])
-    .toArray();
-
-  return result;
 }

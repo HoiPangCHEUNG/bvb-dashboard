@@ -3,21 +3,24 @@ import SqueezePotential from "../components/SqueezePotential";
 import OIConcentrationRisk from "../components/OIConcentrationRisk";
 import RiskDashboard from "../components/RiskDashboard";
 import TopFundingRatesTable from "../components/TopFundingRatesTable";
-import {
-  getHistoricalFundingRates,
-  getCurrentFundingRates,
-} from "../../services/bvb";
+import { getHistoricalFundingRates } from "../../services/bvb";
 import DashboardClient from "../components/DashboardClient";
 import GitHubButton from "../components/GitHubButton";
 
 export default async function DashboardPage() {
-  // Get historical data for different timeframes
-  const historicalData15min = await getHistoricalFundingRates(12, "15 min");
-  const historicalData1hour = await getHistoricalFundingRates(24, "1 hour");
-  const historicalData4hour = await getHistoricalFundingRates(48, "4 hour");
+  // Fetch all raw data once for 48 hours to reduce DB calls
+  const allHistoricalData = await getHistoricalFundingRates(48, "15 min");
 
-  // Get current rates from MongoDB
-  const currentRates = await getCurrentFundingRates();
+  // Filter locally to create different timeframe views
+  const historicalData15min = allHistoricalData.slice(-48); // Last 12 hours (12 * 4 = 48 entries at 15-min intervals)
+
+  // Create 1-hour data by taking every 4th entry (15min * 4 = 1 hour)
+  const historicalData1hour = allHistoricalData.filter((_, index) => index % 4 === 0).slice(-24);
+
+  // Create 4-hour data by taking every 16th entry (15min * 16 = 4 hours)
+  const historicalData4hour = allHistoricalData.filter((_, index) => index % 16 === 0).slice(-48);
+
+  const currentRates = historicalData15min[historicalData15min.length - 1];
 
   // Default selected markets for the funding rate chart
   const defaultChartMarkets = [
@@ -26,7 +29,7 @@ export default async function DashboardPage() {
     "perps/uinj",
     "perps/ubtc",
     "perps/ueth",
-  ].filter((market) => currentRates[market]); // Only include if they exist
+  ].filter((market) => currentRates.data[market]); // Only include if they exist
 
   // Default market for OI analysis
   const defaultOIMarket = "perps/ulink";
@@ -68,7 +71,7 @@ export default async function DashboardPage() {
 
         {/* Top Funding Rates Table */}
         <div className="mt-8">
-          <TopFundingRatesTable currentRates={currentRates} />
+          <TopFundingRatesTable currentRates={currentRates.data} />
         </div>
       </div>
     </div>
