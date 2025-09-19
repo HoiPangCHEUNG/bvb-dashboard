@@ -2,6 +2,7 @@
 
 import { TimeFrame } from "@/services/bvb";
 import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface FundingRateEntry {
   fundingRate: number;
@@ -49,12 +50,16 @@ export default function FundingRateAlerts({
   console.log(historicalData);
   if (historicalData.length < 2) {
     return (
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Funding Rate Alerts ({selectedTimeFrame})
-        </h3>
-        <p className="text-gray-500">Not enough historical data for alerts</p>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">
+            Funding Rate Alerts ({selectedTimeFrame})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">Not enough historical data for alerts</p>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -183,18 +188,21 @@ export default function FundingRateAlerts({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">
-        Funding Rate Alerts ({selectedTimeFrame})
-        {alerts.length > 0 && (
-          <span className="ml-2 px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
-            {alerts.length} Active
-          </span>
-        )}
-      </h3>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">
+          Funding Rate Alerts ({selectedTimeFrame})
+          {alerts.length > 0 && (
+            <span className="ml-2 px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
+              {alerts.length} Active
+            </span>
+          )}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
 
       {alerts.length === 0 ? (
-        <p className="text-gray-500 text-center py-4">
+        <p className="text-muted-foreground text-center py-4">
           No significant funding rate changes detected
         </p>
       ) : (
@@ -211,7 +219,7 @@ export default function FundingRateAlerts({
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center mb-1">
-                    <span className="font-semibold text-gray-900 mr-2">
+                    <span className="font-semibold mr-2">
                       {alert.market.replace("perps/", "").toUpperCase()}
                     </span>
                     <div className="flex gap-1">
@@ -241,7 +249,7 @@ export default function FundingRateAlerts({
                       >
                         {alert.previousRate.toFixed(2)}%
                       </span>
-                      <span className="mx-2 text-gray-500">→</span>
+                      <span className="mx-2 text-muted-foreground">→</span>
                       <span
                         className={`font-medium ${
                           alert.currentRate > 0
@@ -269,7 +277,7 @@ export default function FundingRateAlerts({
                       </span>
                     </div>
 
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-muted-foreground">
                       Duration: {new Date(previousTimestamp).toLocaleTimeString()} → {new Date(currentRates.timestamp).toLocaleTimeString()}
                       {new Date(previousTimestamp).toDateString() !== new Date(currentRates.timestamp).toDateString() && (
                         <span className="ml-1">
@@ -284,19 +292,20 @@ export default function FundingRateAlerts({
           ))}
 
           {alerts.length > 10 && (
-            <p className="text-xs text-gray-500 text-center">
+            <p className="text-xs text-muted-foreground text-center">
               ... and {alerts.length - 10} more alerts
             </p>
           )}
         </div>
       )}
 
-      <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+      <div className="p-3 bg-blue-50 rounded-lg">
         <p className="text-xs text-blue-800">
           💡 Alerts trigger on: Sign flips, changes &gt;20%, rapid moves
           &gt;50%, or crossing extreme levels
         </p>
       </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
