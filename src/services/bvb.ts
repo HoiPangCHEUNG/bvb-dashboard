@@ -232,13 +232,13 @@ const filterByTimeFrame = (
   }
 };
 
-export const getCurrentFundingRates = async (): Promise<
-  Record<string, FundingRateEntry>
-> => {
-  try {
-    const cachedResult = await getLatestFundingRateWithCache(Infinity);
-    return cachedResult.data || {};
-  } catch (err) {
-    return {};
-  }
-};
+// export const getCurrentFundingRates = async (): Promise<
+//   Record<string, FundingRateEntry>
+// > => {
+//   try {
+//     const cachedResult = await getLatestFundingRateWithCache(Infinity);
+//     return cachedResult.data || {};
+//   } catch (err) {
+//     return {};
+//   }
+// };

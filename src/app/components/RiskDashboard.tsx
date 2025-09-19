@@ -1,21 +1,13 @@
 "use client";
 
 import React from "react";
-
-interface FundingRateEntry {
-  fundingRate: number;
-  longOI: string;
-  shortOI: string;
-  timestamp: number;
-}
-
-interface HistoricalDataEntry {
-  timestamp: number;
-  data: Record<string, FundingRateEntry>;
-}
+import {
+  FundingRateEntry,
+  HistoricalDataEntry,
+} from "../types/dashboardClient";
 
 interface RiskDashboardProps {
-  currentRates: Record<string, FundingRateEntry>;
+  currentRates: HistoricalDataEntry;
   historicalData: HistoricalDataEntry[];
 }
 
@@ -25,7 +17,7 @@ export default function RiskDashboard({
 }: RiskDashboardProps) {
   // Calculate various risk metrics
   const calculateRiskMetrics = () => {
-    const markets = Object.entries(currentRates);
+    const markets = Object.entries(currentRates.data);
 
     // Overall market metrics
     let totalLongOI = 0;
@@ -35,6 +27,7 @@ export default function RiskDashboard({
     let volatilityScore = 0;
 
     markets.forEach(([_, rate]) => {
+      console.log(rate);
       const longOI = parseFloat(rate.longOI) / 1e6;
       const shortOI = parseFloat(rate.shortOI) / 1e6;
 
@@ -133,7 +126,7 @@ export default function RiskDashboard({
   const riskLevel = getRiskLevel(metrics.overallRisk);
 
   // Find highest risk markets
-  const marketRisks = Object.entries(currentRates)
+  const marketRisks = Object.entries(currentRates.data)
     .map(([market, rate]) => {
       const longOI = parseFloat(rate.longOI) / 1e6;
       const shortOI = parseFloat(rate.shortOI) / 1e6;

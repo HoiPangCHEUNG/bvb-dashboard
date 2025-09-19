@@ -32,7 +32,7 @@ interface Alert {
 
 interface FundingRateAlertsProps {
   historicalData: HistoricalDataEntry[];
-  currentRates: Record<string, FundingRateEntry>;
+  currentRates: HistoricalDataEntry;
   selectedTimeFrame: TimeFrame;
 }
 
@@ -46,6 +46,7 @@ export default function FundingRateAlerts({
   currentRates,
   selectedTimeFrame,
 }: FundingRateAlertsProps) {
+  console.log(historicalData);
   if (historicalData.length < 2) {
     return (
       <div className="bg-white rounded-lg shadow p-6">
@@ -58,16 +59,16 @@ export default function FundingRateAlerts({
   }
 
   // Get previous data point for comparison
-  const previousData = historicalData[historicalData.length - 1]?.data || {};
-  const currentData = currentRates;
+  const previousData = historicalData[historicalData.length - 2]?.data || {};
+  const previousTimestamp = historicalData[historicalData.length - 2]?.timestamp || 0;
 
   // Calculate changes and identify alerts
   const alerts: Alert[] = [];
 
-  Object.keys(currentData).forEach((market) => {
+  Object.keys(currentRates.data).forEach((market) => {
     if (!previousData[market]) return;
 
-    const current = currentData[market];
+    const current = currentRates.data[market];
     const previous = previousData[market];
     const change = current.fundingRate - previous.fundingRate;
     const changePercent =
@@ -229,42 +230,53 @@ export default function FundingRateAlerts({
                     </div>
                   </div>
 
-                  <div className="flex items-center text-sm">
-                    <span
-                      className={`font-medium ${
-                        alert.previousRate > 0
-                          ? "text-green-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      {alert.previousRate.toFixed(2)}%
-                    </span>
-                    <span className="mx-2 text-gray-500">→</span>
-                    <span
-                      className={`font-medium ${
-                        alert.currentRate > 0
-                          ? "text-green-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      {alert.currentRate.toFixed(2)}%
-                    </span>
-                    <span
-                      className={`ml-3 font-semibold ${
-                        alert.change > 0 ? "text-green-600" : "text-red-600"
-                      }`}
-                    >
-                      {alert.change > 0 ? "+" : ""}
-                      {alert.change.toFixed(2)}%
-                      {alert.changePercent !== 0 &&
-                        !isNaN(alert.changePercent) &&
-                        isFinite(alert.changePercent) && (
-                          <span className="text-xs ml-1">
-                            ({alert.changePercent > 0 ? "+" : ""}
-                            {alert.changePercent.toFixed(0)}%)
-                          </span>
-                        )}
-                    </span>
+                  <div className="space-y-1">
+                    <div className="flex items-center text-sm">
+                      <span
+                        className={`font-medium ${
+                          alert.previousRate > 0
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {alert.previousRate.toFixed(2)}%
+                      </span>
+                      <span className="mx-2 text-gray-500">→</span>
+                      <span
+                        className={`font-medium ${
+                          alert.currentRate > 0
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {alert.currentRate.toFixed(2)}%
+                      </span>
+                      <span
+                        className={`ml-3 font-semibold ${
+                          alert.change > 0 ? "text-green-600" : "text-red-600"
+                        }`}
+                      >
+                        {alert.change > 0 ? "+" : ""}
+                        {alert.change.toFixed(2)}%
+                        {alert.changePercent !== 0 &&
+                          !isNaN(alert.changePercent) &&
+                          isFinite(alert.changePercent) && (
+                            <span className="text-xs ml-1">
+                              ({alert.changePercent > 0 ? "+" : ""}
+                              {alert.changePercent.toFixed(0)}%)
+                            </span>
+                          )}
+                      </span>
+                    </div>
+
+                    <div className="text-xs text-gray-500">
+                      Duration: {new Date(previousTimestamp).toLocaleTimeString()} → {new Date(currentRates.timestamp).toLocaleTimeString()}
+                      {new Date(previousTimestamp).toDateString() !== new Date(currentRates.timestamp).toDateString() && (
+                        <span className="ml-1">
+                          ({new Date(previousTimestamp).toLocaleDateString()} → {new Date(currentRates.timestamp).toLocaleDateString()})
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

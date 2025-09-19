@@ -1,16 +1,13 @@
 "use client";
 
 import React from "react";
-
-interface FundingRateEntry {
-  fundingRate: number;
-  longOI: string;
-  shortOI: string;
-  timestamp: number;
-}
+import {
+  FundingRateEntry,
+  HistoricalDataEntry,
+} from "../types/dashboardClient";
 
 interface SqueezePotentialProps {
-  currentRates: Record<string, FundingRateEntry>;
+  currentRates: HistoricalDataEntry;
 }
 
 export default function SqueezePotential({
@@ -59,7 +56,7 @@ export default function SqueezePotential({
     };
   };
 
-  const squeezeData = Object.entries(currentRates)
+  const squeezeData = Object.entries(currentRates.data)
     .map(([market, rate]) => calculateSqueezePotential(market, rate))
     .filter((data) => data !== null && data.maxScore > 0)
     .sort((a, b) => b!.maxScore - a!.maxScore)

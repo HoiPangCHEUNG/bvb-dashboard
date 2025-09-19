@@ -1,23 +1,17 @@
 "use client";
 
 import React from "react";
-
-interface FundingRateEntry {
-  fundingRate: number;
-  longOI: string;
-  shortOI: string;
-  timestamp: number;
-}
+import { HistoricalDataEntry } from "../types/dashboardClient";
 
 interface MarketSentimentProps {
-  currentRates: Record<string, FundingRateEntry>;
+  currentRates: HistoricalDataEntry;
 }
 
 export default function MarketSentiment({
   currentRates,
 }: MarketSentimentProps) {
   // Calculate sentiment metrics
-  const markets = Object.entries(currentRates);
+  const markets = Object.entries(currentRates.data);
   const totalMarkets = markets.length;
 
   // Count positive vs negative funding
