@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { TimeFrame } from "../utils/bvb";
+import { TimeFrame } from "../../services/bvb";
 import TimeFrameSelector from "./TimeFrameSelector";
 import FundingRateChart from "./FundingRateChart";
 import OpenInterestChart from "./OpenInterestChart";
+import FundingRateAlerts from "./FundingRateAlerts";
 
 interface FundingRateEntry {
   fundingRate: number;
@@ -33,25 +34,29 @@ export default function DashboardClient({
   historicalData4hour,
   currentRates,
   defaultChartMarkets,
-  defaultOIMarket
+  defaultOIMarket,
 }: DashboardClientProps) {
-  const [selectedTimeFrame, setSelectedTimeFrame] = useState<TimeFrame>('15min');
+  const [selectedTimeFrame, setSelectedTimeFrame] =
+    useState<TimeFrame>("15 min");
 
   // Get the appropriate historical data based on selected timeframe
-  const getHistoricalDataForTimeFrame = (timeFrame: TimeFrame): HistoricalDataEntry[] => {
+  const getHistoricalDataForTimeFrame = (
+    timeFrame: TimeFrame
+  ): HistoricalDataEntry[] => {
     switch (timeFrame) {
-      case '15min':
+      case "15 min":
         return historicalData15min;
-      case '1hour':
+      case "1 hour":
         return historicalData1hour;
-      case '4hour':
+      case "4 hour":
         return historicalData4hour;
       default:
         return historicalData15min;
     }
   };
 
-  const currentHistoricalData = getHistoricalDataForTimeFrame(selectedTimeFrame);
+  const currentHistoricalData =
+    getHistoricalDataForTimeFrame(selectedTimeFrame);
 
   return (
     <>
@@ -60,10 +65,19 @@ export default function DashboardClient({
         onTimeFrameChange={setSelectedTimeFrame}
       />
 
+      {/* Alerts Section */}
+      <div className="mb-8">
+        <FundingRateAlerts
+          historicalData={currentHistoricalData}
+          currentRates={currentRates}
+          selectedTimeFrame={selectedTimeFrame}
+        />
+      </div>
+
       {/* Charts Section */}
       <div className="grid grid-cols-1 gap-8">
         <div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">
             Funding Rate Trends ({selectedTimeFrame})
           </h2>
           <FundingRateChart
@@ -73,7 +87,7 @@ export default function DashboardClient({
         </div>
 
         <div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">
             Open Interest Analysis ({selectedTimeFrame})
           </h2>
           <OpenInterestChart

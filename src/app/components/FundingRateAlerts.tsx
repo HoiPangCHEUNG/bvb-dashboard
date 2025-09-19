@@ -1,5 +1,6 @@
 "use client";
 
+import { TimeFrame } from "@/services/bvb";
 import React from "react";
 
 interface FundingRateEntry {
@@ -32,6 +33,7 @@ interface Alert {
 interface FundingRateAlertsProps {
   historicalData: HistoricalDataEntry[];
   currentRates: Record<string, FundingRateEntry>;
+  selectedTimeFrame: TimeFrame;
 }
 
 const SEVERITY = {
@@ -42,12 +44,13 @@ const SEVERITY = {
 export default function FundingRateAlerts({
   historicalData,
   currentRates,
+  selectedTimeFrame,
 }: FundingRateAlertsProps) {
   if (historicalData.length < 2) {
     return (
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Funding Rate Alerts
+          Funding Rate Alerts ({selectedTimeFrame})
         </h3>
         <p className="text-gray-500">Not enough historical data for alerts</p>
       </div>
@@ -55,7 +58,7 @@ export default function FundingRateAlerts({
   }
 
   // Get previous data point for comparison
-  const previousData = historicalData[historicalData.length - 8]?.data || {};
+  const previousData = historicalData[historicalData.length - 1]?.data || {};
   const currentData = currentRates;
 
   // Calculate changes and identify alerts
@@ -181,7 +184,7 @@ export default function FundingRateAlerts({
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
-        Funding Rate Alerts
+        Funding Rate Alerts ({selectedTimeFrame})
         {alerts.length > 0 && (
           <span className="ml-2 px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
             {alerts.length} Active

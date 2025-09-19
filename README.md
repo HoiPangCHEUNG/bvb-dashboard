@@ -31,27 +31,30 @@ _Interactive funding rate trends and open interest analysis with time frame sele
 
 - **Update Frequency**: Data fetched every 15 minutes from BVB contracts
 - **Data Source**: Neutron blockchain via CosmWasm queries
-- **Caching**: 5-minute cache to prevent excessive API calls
 
-### Data Storage
+### Data Storage (MongoDB)
 
-- **Hourly Files**: Data stored in files like `2024-01-15-14.json`
-- **Small Files**: Each file contains max 4 entries (15-minute intervals)
-- **Fast Reads**: No more large JSON parsing - only read what you need
-
-### Timeframe Filtering
-
-- **15min**: Shows all data points (every 15 minutes)
-- **1hour**: Shows first entry of each hour
-- **4hour**: Shows first entry every 4 hours
+- **Database**: `dashboard`
+- **Collections**:
+  - `markets`: Stores market information (denom, display name)
+  - `funding_rates`: Stores funding rate snapshots with timestamps
 
 ## Getting Started
 
 ### Prerequisites
 
+PM 2 (process manager)
+
 ```bash
 npm install -g pm2  # For process management
 ```
+
+MongoDB instance (local or cloud)
+
+- Cloud (recommended): Use [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) (free tier available)
+- Local: Install [MongoDB Community Edition](https://www.mongodb.com/docs/manual/installation/)
+
+- _Note that You need to manually create a database named `dashboard` and two collections named `markets` and `funding_rates`_.
 
 ### Installation
 
@@ -64,10 +67,13 @@ npm install
 Create a `.env` file:
 
 ```env
+# MongoDB connection string (required)
+# For MongoDB Atlas:
+MONGODB_URI=mongodb+srv://<username>:<password>@<domain>/?retryWrites=true&w=majority&appName=<appName>
+
+# Neutron RPC URL (optional - will use random public RPC if not set)
 NEUTRON_RPC_URL=https://rpc-lb.neutron.org
 ```
-
-if not set, we will randomly pick one from the available public RPCs. (not recommended)
 
 ### Development
 
@@ -75,10 +81,7 @@ if not set, we will randomly pick one from the available public RPCs. (not recom
 # Start the development server
 npm run dev
 
-# Start the cron scheduler (development)
-npm run cron
-
-# Start with PM2 (production)
+# Start the cron scheduler with PM2 (production)
 npm run cron:pm2
 ```
 
@@ -102,7 +105,6 @@ npm run cron:pm2
 - `npm run dev` - Start development server with Turbopack
 - `npm run build` - Build for production
 - `npm start` - Start production server
-- `npm run cron` - Run cron scheduler once
 - `npm run cron:pm2` - Start cron scheduler with PM2
 - `npm run fetch-rates` - Manually fetch funding rates
 
@@ -131,34 +133,21 @@ pm2 delete funding-rate-cron
 src/
 ├── app/
 │   ├── components/          # React components
-│   │   ├── FundingRateChart.tsx
-│   │   ├── OpenInterestChart.tsx
-│   │   ├── TimeFrameSelector.tsx
-│   │   └── DashboardClient.tsx
 │   ├── dashboard/           # Main dashboard page
 │   ├── utils/              # Utility functions
-│   │   └── bvb.ts          # BVB API integration
 │   └── constant/           # Configuration constants
 └── cron/                   # Automated data collection
-    ├── scheduler.ts        # Cron job scheduler
-    └── fetchFundingRates.ts # Data fetching logic
 ```
 
 ## Data Flow
 
 1. **Cron Scheduler** (`scheduler.ts`) runs every 15 minutes
 2. **Data Fetcher** (`fetchFundingRates.ts`) queries BVB contracts on Neutron
-3. **Storage** saves data to hourly JSON files in `./data/`
-4. **Dashboard** reads and filters data based on selected timeframe
+3. **MongoDB Storage** persists funding rates and market data to collections
+4. **Dashboard** queries MongoDB and filters data based on selected timeframe
 5. **Charts** display funding rates and open interest (15-minute intervals)
 
 ## Key Components
-
-### TimeFrame System
-
-- Efficient data filtering without re-fetching
-- Pre-computed data for instant UI switching
-- Scalable to add more timeframes
 
 ### Risk Analysis
 
@@ -166,21 +155,20 @@ src/
 - **Squeeze Potential**: Identifies potential short/long squeezes
 - **Concentration Risk**: Monitors open interest distribution
 - **Funding Rate Alerts**: Automated threshold monitoring
+- **Funding Rate Trend**: Tracks funding rates over time
+- **Open Interest Analysis**: Visualizes open interest trends
 
 ## Tech Stack
 
 - **Frontend**: Next.js 15, React 19, TailwindCSS
-- **Charts**: Chart.js with React Chart.js 2
+- **Database**: MongoDB with native Node.js driver
 - **Blockchain**: CosmJS for Neutron integration
-- **Process Management**: PM2
-- **Scheduling**: node-cron
-- **TypeScript**: Full type safety
 
 ## Disclaimer
 
 This project is created by independent developers and is not affiliated with, endorsed by, or connected to Bull vs. Bear (BvB) platform or its operators. This is a fan-made monitoring tool for educational and informational purposes.
 
-**Data Interpretation**: All calculations, risk metrics, and analysis presented in this dashboard reflect the author's interpretation of the raw blockchain data. These calculations are subjective and you may disagree with the methodology or conclusions. Always conduct your own research and analysis before making any trading decisions.
+**Data Interpretation**: All calculations, risk metrics, and analysis presented in this dashboard reflect the author's interpretation of the raw blockchain data. These calculations are subjective and you may disagree with the methodology or conclusions. Always conduct your own research and analysis before making any trading decisions. DYOR.
 
 ## License
 

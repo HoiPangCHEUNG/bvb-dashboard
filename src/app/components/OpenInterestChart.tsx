@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Select from "react-select";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -52,17 +53,32 @@ export default function OpenInterestChart({
     )
   ).sort();
 
+  // Prepare options for React Select
+  const marketOptions = allMarkets.map((market) => ({
+    value: market,
+    label: market.replace("perps/", "").toUpperCase(),
+  }));
+
   // State for selected market - must be before any returns
-  const [selectedMarket, setSelectedMarket] = useState<string>(
-    initialSelectedMarket || allMarkets[0] || ""
-  );
+  const [selectedMarket, setSelectedMarket] = useState<{
+    value: string;
+    label: string;
+  } | null>(() => {
+    // Use a function to ensure consistent initial state
+    if (marketOptions.length === 0) return null;
+    return (
+      marketOptions.find((opt) => opt.value === initialSelectedMarket) ||
+      marketOptions[0] ||
+      null
+    );
+  });
 
   // Early return after hooks
   if (!historicalData || historicalData.length === 0) {
     return <div>No open interest data available</div>;
   }
 
-  const marketToShow = selectedMarket || allMarkets[0];
+  const marketToShow = selectedMarket?.value || allMarkets[0];
 
   // Prepare chart data
   const labels = historicalData.map((entry) =>
@@ -104,7 +120,9 @@ export default function OpenInterestChart({
       },
       title: {
         display: true,
-        text: `Open Interest - ${marketToShow.replace("perps/", "").toUpperCase()}`,
+        text: `Open Interest - ${marketToShow
+          .replace("perps/", "")
+          .toUpperCase()}`,
       },
       tooltip: {
         callbacks: {
@@ -132,7 +150,7 @@ export default function OpenInterestChart({
           color: "rgba(0, 0, 0, 0.1)",
         },
         ticks: {
-          callback: function(value) {
+          callback: function (value) {
             const numValue = Number(value);
             if (numValue >= 1000000) {
               return "$" + (numValue / 1000000).toFixed(1) + "M";
@@ -159,26 +177,50 @@ export default function OpenInterestChart({
   return (
     <div className="w-full p-4 bg-white rounded-lg shadow">
       <div className="mb-4">
-        <label htmlFor="market-select" className="block text-base font-semibold text-gray-900 mb-2">
+        <label
+          htmlFor="market-select"
+          className="block text-base font-semibold text-gray-900 mb-2"
+        >
           Select Market:
         </label>
-        <select
+        <Select
           id="market-select"
-          className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 font-medium"
-          value={marketToShow}
-          onChange={(e) => {
-            setSelectedMarket(e.target.value);
+          instanceId="market-select"
+          value={selectedMarket}
+          onChange={(newValue) => setSelectedMarket(newValue)}
+          options={marketOptions}
+          className="react-select-container"
+          classNamePrefix="react-select"
+          placeholder="Select a market..."
+          isClearable={false}
+          isSearchable={true}
+          styles={{
+            control: (provided) => ({
+              ...provided,
+              fontSize: "16px",
+              fontWeight: "500",
+              minHeight: "42px",
+            }),
+            option: (provided, state) => ({
+              ...provided,
+              fontSize: "16px",
+              fontWeight: "500",
+              color: state.isSelected ? provided.color : "#111827",
+            }),
+            singleValue: (provided) => ({
+              ...provided,
+              color: "#111827",
+              fontSize: "16px",
+              fontWeight: "500",
+            }),
           }}
-        >
-          {allMarkets.map((market) => (
-            <option key={market} value={market} className="text-gray-900">
-              {market.replace("perps/", "").toUpperCase()}
-            </option>
-          ))}
-        </select>
+        />
       </div>
       <div style={{ position: "relative", height: "400px", width: "100%" }}>
-        <Bar options={{ ...options, maintainAspectRatio: false }} data={{ labels, datasets }} />
+        <Bar
+          options={{ ...options, maintainAspectRatio: false }}
+          data={{ labels, datasets }}
+        />
       </div>
     </div>
   );

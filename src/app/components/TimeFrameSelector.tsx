@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { TimeFrame } from "../utils/bvb";
+import { TimeFrame } from "../../services/bvb";
 
 interface TimeFrameSelectorProps {
   selectedTimeFrame: TimeFrame;
@@ -10,23 +10,27 @@ interface TimeFrameSelectorProps {
 
 export default function TimeFrameSelector({
   selectedTimeFrame,
-  onTimeFrameChange
+  onTimeFrameChange,
 }: TimeFrameSelectorProps) {
-  const timeFrameOptions: { value: TimeFrame; label: string; description: string }[] = [
+  const timeFrameOptions: {
+    value: TimeFrame;
+    label: string;
+    description: string;
+  }[] = [
     {
-      value: '15min',
-      label: '15 Minutes',
-      description: 'Show all data points (every 15 minutes)'
+      value: "15 min",
+      label: "15 Minutes",
+      description: "Show all data points (every 15 minutes)",
     },
     {
-      value: '1hour',
-      label: '1 Hour',
-      description: 'Show first entry of each hour'
+      value: "1 hour",
+      label: "1 Hour",
+      description: "Show first entry of each hour",
     },
     {
-      value: '4hour',
-      label: '4 Hours',
-      description: 'Show first entry every 4 hours'
+      value: "4 hour",
+      label: "4 Hours",
+      description: "Show first entry every 4 hours",
     },
   ];
 
@@ -40,8 +44,8 @@ export default function TimeFrameSelector({
             onClick={() => onTimeFrameChange(option.value)}
             className={`p-3 rounded-lg border-2 text-left transition-colors ${
               selectedTimeFrame === option.value
-                ? 'border-blue-500 bg-blue-50 text-blue-900'
-                : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300'
+                ? "border-blue-500 bg-blue-50 text-blue-900"
+                : "border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300"
             }`}
           >
             <div className="font-medium">{option.label}</div>

@@ -2,20 +2,19 @@ import MarketSentiment from "../components/MarketSentiment";
 import SqueezePotential from "../components/SqueezePotential";
 import OIConcentrationRisk from "../components/OIConcentrationRisk";
 import RiskDashboard from "../components/RiskDashboard";
-import FundingRateAlerts from "../components/FundingRateAlerts";
 import TopFundingRatesTable from "../components/TopFundingRatesTable";
 import {
   getHistoricalFundingRates,
   getCurrentFundingRates,
-} from "../utils/bvb";
+} from "../../services/bvb";
 import DashboardClient from "../components/DashboardClient";
 import GitHubButton from "../components/GitHubButton";
 
 export default async function DashboardPage() {
   // Get historical data for different timeframes
-  const historicalData15min = await getHistoricalFundingRates(12, "15min");
-  const historicalData1hour = await getHistoricalFundingRates(24, "1hour");
-  const historicalData4hour = await getHistoricalFundingRates(48, "4hour");
+  const historicalData15min = await getHistoricalFundingRates(12, "15 min");
+  const historicalData1hour = await getHistoricalFundingRates(24, "1 hour");
+  const historicalData4hour = await getHistoricalFundingRates(48, "4 hour");
 
   // Get current rates from MongoDB
   const currentRates = await getCurrentFundingRates();
@@ -51,21 +50,13 @@ export default async function DashboardPage() {
           />
         </div>
 
-        {/* Alerts Section */}
-        <div className="mb-8">
-          <FundingRateAlerts
-            historicalData={historicalData15min}
-            currentRates={currentRates}
-          />
-        </div>
-
         {/* Analysis Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           <SqueezePotential currentRates={currentRates} />
           <OIConcentrationRisk currentRates={currentRates} />
         </div>
 
-        {/* TimeFrame Selector and Charts */}
+        {/* TimeFrame Selector, Alerts and Charts */}
         <DashboardClient
           historicalData15min={historicalData15min}
           historicalData1hour={historicalData1hour}
