@@ -8,18 +8,18 @@
     "start": "next start",
     "lint": "eslint",
     "fetch-rates": "npx tsx src/cron/fetchFundingRates.ts",
-    "cron": "npx tsx src/cron/scheduler.ts",
-    "cron:pm2": "pm2 start src/cron/scheduler.ts --name funding-rate-cron --interpreter tsx",
-    "migrate": "npx tsx src/scripts/migrate-data-to-mongodb.ts"
+    "cron:pm2": "pm2 start src/cron/scheduler.ts --name funding-rate-cron --interpreter tsx"
   },
   "dependencies": {
     "@types/node-cron": "^3.0.11",
     "chart.js": "^4.5.0",
     "mongodb": "^6.19.0",
     "next": "15.5.3",
+    "ollama": "^0.5.18",
     "react": "19.1.0",
     "react-chartjs-2": "^5.3.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "react-select": "^5.10.2"
   },
   "devDependencies": {
     "@cosmjs/cosmwasm-stargate": "^0.33.1",

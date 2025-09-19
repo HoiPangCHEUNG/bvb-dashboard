@@ -4,7 +4,7 @@ import {
   OVERRIDE_RPC,
   MARS,
   FUNDING_RATE_CACHE_TIME,
-} from "../constant/bvb";
+} from "../app/constant/const";
 import { chains } from "chain-registry";
 import { CosmWasmClient } from "@cosmjs/cosmwasm-stargate";
 import {
@@ -157,11 +157,11 @@ export const getFundingRates = async () => {
   }
 };
 
-export type TimeFrame = "15min" | "1hour" | "4hour";
+export type TimeFrame = "15 min" | "1 hour" | "4 hour";
 
 export const getHistoricalFundingRates = async (
   hoursBack: number = 24,
-  timeFrame: TimeFrame = "15min"
+  timeFrame: TimeFrame = "15 min"
 ): Promise<HistoricalDataEntry[]> => {
   const now = Date.now();
   const startTime = now - hoursBack * 60 * 60 * 1000;
@@ -190,11 +190,11 @@ const filterByTimeFrame = (
   if (entries.length === 0) return [];
 
   switch (timeFrame) {
-    case "15min":
+    case "15 min":
       // Show all entries (every 15 minutes)
       return entries;
 
-    case "1hour":
+    case "1 hour":
       // Show first entry of each hour
       const hourlyEntries: HistoricalDataEntry[] = [];
       const seenHours = new Set<string>();
@@ -209,7 +209,7 @@ const filterByTimeFrame = (
 
       return hourlyEntries;
 
-    case "4hour":
+    case "4 hour":
       // Show first entry every 4 hours
       const fourHourlyEntries: HistoricalDataEntry[] = [];
       const seenFourHourBlocks = new Set<string>();
