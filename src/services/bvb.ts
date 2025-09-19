@@ -188,6 +188,8 @@ const filterByTimeFrame = (
   timeFrame: TimeFrame
 ): HistoricalDataEntry[] => {
   if (entries.length === 0) return [];
+  const hourlyEntries: HistoricalDataEntry[] = [];
+  const seenHours = new Set<string>();
 
   switch (timeFrame) {
     case "15 min":
@@ -195,10 +197,6 @@ const filterByTimeFrame = (
       return entries;
 
     case "1 hour":
-      // Show first entry of each hour
-      const hourlyEntries: HistoricalDataEntry[] = [];
-      const seenHours = new Set<string>();
-
       entries.forEach((entry) => {
         const hourKey = new Date(entry.timestamp).toISOString().slice(0, 13); // YYYY-MM-DDTHH
         if (!seenHours.has(hourKey)) {
@@ -228,7 +226,17 @@ const filterByTimeFrame = (
       return fourHourlyEntries;
 
     default:
-      return entries;
+      // Show first entry of each hour
+
+      entries.forEach((entry) => {
+        const hourKey = new Date(entry.timestamp).toISOString().slice(0, 13); // YYYY-MM-DDTHH
+        if (!seenHours.has(hourKey)) {
+          seenHours.add(hourKey);
+          hourlyEntries.push(entry);
+        }
+      });
+
+      return hourlyEntries;
   }
 };
 

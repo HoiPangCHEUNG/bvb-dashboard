@@ -278,7 +278,7 @@ export default function FundingRateAlerts({
                     </div>
 
                     <div className="text-xs text-muted-foreground">
-                      Duration: {new Date(previousTimestamp).toLocaleTimeString()} → {new Date(currentRates.timestamp).toLocaleTimeString()}
+                      Duration: {new Date(previousTimestamp).toLocaleTimeString(undefined, {hour12: false})} → {new Date(currentRates.timestamp).toLocaleTimeString(undefined, {hour12: false})}
                       {new Date(previousTimestamp).toDateString() !== new Date(currentRates.timestamp).toDateString() && (
                         <span className="ml-1">
                           ({new Date(previousTimestamp).toLocaleDateString()} → {new Date(currentRates.timestamp).toLocaleDateString()})
