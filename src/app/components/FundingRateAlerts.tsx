@@ -47,7 +47,6 @@ export default function FundingRateAlerts({
   currentRates,
   selectedTimeFrame,
 }: FundingRateAlertsProps) {
-  console.log(historicalData);
   if (historicalData.length < 2) {
     return (
       <Card>
@@ -57,7 +56,9 @@ export default function FundingRateAlerts({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">Not enough historical data for alerts</p>
+          <p className="text-muted-foreground">
+            Not enough historical data for alerts
+          </p>
         </CardContent>
       </Card>
     );
@@ -65,7 +66,8 @@ export default function FundingRateAlerts({
 
   // Get previous data point for comparison
   const previousData = historicalData[historicalData.length - 2]?.data || {};
-  const previousTimestamp = historicalData[historicalData.length - 2]?.timestamp || 0;
+  const previousTimestamp =
+    historicalData[historicalData.length - 2]?.timestamp || 0;
 
   // Calculate changes and identify alerts
   const alerts: Alert[] = [];
@@ -200,111 +202,125 @@ export default function FundingRateAlerts({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {alerts.length === 0 ? (
+          <p className="text-muted-foreground text-center py-4">
+            No significant funding rate changes detected
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {alerts.slice(0, 10).map((alert, idx) => (
+              <div
+                key={`${alert.market}-${idx}`}
+                className={`border rounded-lg p-3 ${
+                  alert.severity === "high"
+                    ? "border-red-300 bg-red-50"
+                    : "border-yellow-300 bg-yellow-50"
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center mb-1">
+                      <span className="font-semibold mr-2">
+                        {alert.market.replace("perps/", "").toUpperCase()}
+                      </span>
+                      <div className="flex gap-1">
+                        {alert.alerts.map((a: AlertItem, i: number) => (
+                          <span
+                            key={i}
+                            className={`px-2 py-0.5 text-xs rounded-full ${
+                              a.severity === "high"
+                                ? "bg-red-200 text-red-800"
+                                : "bg-yellow-200 text-yellow-800"
+                            }`}
+                          >
+                            {getAlertIcon(a.type)} {getAlertLabel(a.type)}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
 
-      {alerts.length === 0 ? (
-        <p className="text-muted-foreground text-center py-4">
-          No significant funding rate changes detected
-        </p>
-      ) : (
-        <div className="space-y-3">
-          {alerts.slice(0, 10).map((alert, idx) => (
-            <div
-              key={`${alert.market}-${idx}`}
-              className={`border rounded-lg p-3 ${
-                alert.severity === "high"
-                  ? "border-red-300 bg-red-50"
-                  : "border-yellow-300 bg-yellow-50"
-              }`}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center mb-1">
-                    <span className="font-semibold mr-2">
-                      {alert.market.replace("perps/", "").toUpperCase()}
-                    </span>
-                    <div className="flex gap-1">
-                      {alert.alerts.map((a: AlertItem, i: number) => (
+                    <div className="space-y-1">
+                      <div className="flex items-center text-sm">
                         <span
-                          key={i}
-                          className={`px-2 py-0.5 text-xs rounded-full ${
-                            a.severity === "high"
-                              ? "bg-red-200 text-red-800"
-                              : "bg-yellow-200 text-yellow-800"
+                          className={`font-medium ${
+                            alert.previousRate > 0
+                              ? "text-green-600"
+                              : "text-red-600"
                           }`}
                         >
-                          {getAlertIcon(a.type)} {getAlertLabel(a.type)}
+                          {alert.previousRate.toFixed(2)}%
                         </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <div className="flex items-center text-sm">
-                      <span
-                        className={`font-medium ${
-                          alert.previousRate > 0
-                            ? "text-green-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        {alert.previousRate.toFixed(2)}%
-                      </span>
-                      <span className="mx-2 text-muted-foreground">→</span>
-                      <span
-                        className={`font-medium ${
-                          alert.currentRate > 0
-                            ? "text-green-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        {alert.currentRate.toFixed(2)}%
-                      </span>
-                      <span
-                        className={`ml-3 font-semibold ${
-                          alert.change > 0 ? "text-green-600" : "text-red-600"
-                        }`}
-                      >
-                        {alert.change > 0 ? "+" : ""}
-                        {alert.change.toFixed(2)}%
-                        {alert.changePercent !== 0 &&
-                          !isNaN(alert.changePercent) &&
-                          isFinite(alert.changePercent) && (
-                            <span className="text-xs ml-1">
-                              ({alert.changePercent > 0 ? "+" : ""}
-                              {alert.changePercent.toFixed(0)}%)
-                            </span>
-                          )}
-                      </span>
-                    </div>
-
-                    <div className="text-xs text-muted-foreground">
-                      Duration: {new Date(previousTimestamp).toLocaleTimeString(undefined, {hour12: false})} → {new Date(currentRates.timestamp).toLocaleTimeString(undefined, {hour12: false})}
-                      {new Date(previousTimestamp).toDateString() !== new Date(currentRates.timestamp).toDateString() && (
-                        <span className="ml-1">
-                          ({new Date(previousTimestamp).toLocaleDateString()} → {new Date(currentRates.timestamp).toLocaleDateString()})
+                        <span className="mx-2 text-muted-foreground">→</span>
+                        <span
+                          className={`font-medium ${
+                            alert.currentRate > 0
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          {alert.currentRate.toFixed(2)}%
                         </span>
-                      )}
+                        <span
+                          className={`ml-3 font-semibold ${
+                            alert.change > 0 ? "text-green-600" : "text-red-600"
+                          }`}
+                        >
+                          {alert.change > 0 ? "+" : ""}
+                          {alert.change.toFixed(2)}%
+                          {alert.changePercent !== 0 &&
+                            !isNaN(alert.changePercent) &&
+                            isFinite(alert.changePercent) && (
+                              <span className="text-xs ml-1">
+                                ({alert.changePercent > 0 ? "+" : ""}
+                                {alert.changePercent.toFixed(0)}%)
+                              </span>
+                            )}
+                        </span>
+                      </div>
+
+                      <div className="text-xs text-muted-foreground">
+                        Duration:{" "}
+                        {new Date(previousTimestamp).toLocaleTimeString(
+                          undefined,
+                          { hour12: false }
+                        )}{" "}
+                        →{" "}
+                        {new Date(currentRates.timestamp).toLocaleTimeString(
+                          undefined,
+                          { hour12: false }
+                        )}
+                        {new Date(previousTimestamp).toDateString() !==
+                          new Date(currentRates.timestamp).toDateString() && (
+                          <span className="ml-1">
+                            ({new Date(previousTimestamp).toLocaleDateString()}{" "}
+                            →{" "}
+                            {new Date(
+                              currentRates.timestamp
+                            ).toLocaleDateString()}
+                            )
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
 
-          {alerts.length > 10 && (
-            <p className="text-xs text-muted-foreground text-center">
-              ... and {alerts.length - 10} more alerts
-            </p>
-          )}
+            {alerts.length > 10 && (
+              <p className="text-xs text-muted-foreground text-center">
+                ... and {alerts.length - 10} more alerts
+              </p>
+            )}
+          </div>
+        )}
+
+        <div className="p-3 bg-blue-50 rounded-lg">
+          <p className="text-xs text-blue-800">
+            💡 Alerts trigger on: Sign flips, changes &gt;20%, rapid moves
+            &gt;50%, or crossing extreme levels
+          </p>
         </div>
-      )}
-
-      <div className="p-3 bg-blue-50 rounded-lg">
-        <p className="text-xs text-blue-800">
-          💡 Alerts trigger on: Sign flips, changes &gt;20%, rapid moves
-          &gt;50%, or crossing extreme levels
-        </p>
-      </div>
       </CardContent>
     </Card>
   );
