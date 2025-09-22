@@ -1,28 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  ChartOptions,
-} from "chart.js";
-import { Line } from "react-chartjs-2";
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+} from "@/components/ui/card";
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 
 interface FundingRateEntry {
   fundingRate: number;
@@ -61,6 +52,50 @@ export default function FundingRateChart({
       : allMarkets.slice(0, 5)
   );
 
+  // Transform data for recharts - move before early return
+  const chartData = useMemo(() => {
+    if (!historicalData || historicalData.length === 0) return [];
+
+    return historicalData.map((entry) => {
+      const dataPoint: Record<string, unknown> = {
+        time: new Date(entry.timestamp).toLocaleTimeString(),
+        timestamp: entry.timestamp,
+      };
+
+      selectedMarkets.forEach((market) => {
+        dataPoint[market] = entry.data[market]?.fundingRate || 0;
+      });
+
+      return dataPoint;
+    });
+  }, [historicalData, selectedMarkets]);
+
+  // Generate chart config - move before early return
+  const chartConfig = useMemo(() => {
+    const colors = [
+      "var(--chart-1)",
+      "var(--chart-2)",
+      "var(--chart-3)",
+      "var(--chart-4)",
+      "var(--chart-5)",
+      "hsl(12, 76%, 61%)",
+      "hsl(173, 58%, 39%)",
+      "hsl(197, 37%, 24%)",
+      "hsl(43, 74%, 66%)",
+      "hsl(27, 87%, 67%)",
+    ];
+
+    const config: ChartConfig = {};
+    selectedMarkets.forEach((market, index) => {
+      config[market] = {
+        label: market.replace("perps/", "").toUpperCase(),
+        color: colors[index % colors.length],
+      };
+    });
+
+    return config;
+  }, [selectedMarkets]);
+
   // Early return after hooks
   if (!historicalData || historicalData.length === 0) {
     return <div>No funding rate data available</div>;
@@ -77,126 +112,88 @@ export default function FundingRateChart({
     });
   };
 
-  const marketsToShow = selectedMarkets;
-
-  // Prepare chart data
-  const labels = historicalData.map((entry) =>
-    new Date(entry.timestamp).toLocaleTimeString()
-  );
-
-  const datasets = marketsToShow.map((market, index) => {
-    const data = historicalData.map(
-      (entry) => entry.data[market]?.fundingRate || 0
-    );
-
-    // Generate distinct colors for each market
-    const colors = [
-      { border: "rgb(255, 99, 132)", bg: "rgba(255, 99, 132, 0.2)" }, // Red
-      { border: "rgb(54, 162, 235)", bg: "rgba(54, 162, 235, 0.2)" }, // Blue
-      { border: "rgb(255, 206, 86)", bg: "rgba(255, 206, 86, 0.2)" }, // Yellow
-      { border: "rgb(75, 192, 192)", bg: "rgba(75, 192, 192, 0.2)" }, // Teal
-      { border: "rgb(153, 102, 255)", bg: "rgba(153, 102, 255, 0.2)" }, // Purple
-      { border: "rgb(255, 159, 64)", bg: "rgba(255, 159, 64, 0.2)" }, // Orange
-      { border: "rgb(199, 199, 199)", bg: "rgba(199, 199, 199, 0.2)" }, // Grey
-      { border: "rgb(83, 102, 255)", bg: "rgba(83, 102, 255, 0.2)" }, // Indigo
-      { border: "rgb(255, 99, 255)", bg: "rgba(255, 99, 255, 0.2)" }, // Pink
-      { border: "rgb(99, 255, 132)", bg: "rgba(99, 255, 132, 0.2)" }, // Green
-    ];
-
-    const colorSet = colors[index % colors.length];
-
-    return {
-      label: market.replace("perps/", "").toUpperCase(),
-      data,
-      borderColor: colorSet.border,
-      backgroundColor: colorSet.bg,
-      tension: 0.1,
-      borderWidth: 2,
-      pointRadius: 3,
-      pointHoverRadius: 5,
-    };
-  });
-
-  const options: ChartOptions<"line"> = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: "top" as const,
-      },
-      title: {
-        display: true,
-        text: "Funding Rates Over Time (Annual %)",
-      },
-      tooltip: {
-        callbacks: {
-          label: (context) => {
-            const label = context.dataset.label || "";
-            const value = context.parsed.y.toFixed(2);
-            return `${label}: ${value}%`;
-          },
-        },
-      },
-    },
-    scales: {
-      y: {
-        title: {
-          display: true,
-          text: "Funding Rate (Annual %)",
-        },
-        grid: {
-          color: "rgba(0, 0, 0, 0.1)",
-        },
-        ticks: {
-          callback: function (value) {
-            return Number(value).toFixed(2) + "%";
-          },
-        },
-      },
-      x: {
-        title: {
-          display: true,
-          text: "Time",
-        },
-        grid: {
-          color: "rgba(0, 0, 0, 0.1)",
-        },
-      },
-    },
-  };
-
   return (
-    <div className="w-full p-4 bg-white rounded-lg shadow">
-      <div className="mb-4">
-        <details className="cursor-pointer">
-          <summary className="font-semibold text-gray-900 mb-2 text-base">
-            Select Markets ({selectedMarkets.length} selected)
-          </summary>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 mt-2 p-2 border rounded">
-            {allMarkets.map((market) => (
-              <label
-                key={market}
-                className="flex items-center space-x-1 text-sm cursor-pointer hover:bg-gray-100 p-1 rounded"
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedMarkets.includes(market)}
-                  onChange={() => handleMarketToggle(market)}
-                  className="rounded text-blue-600 focus:ring-blue-500"
+    <Card className="w-full">
+      <CardHeader>
+        <CardDescription>
+          Real-time funding rates across selected markets (Annual %)
+        </CardDescription>
+        <div className="mt-4">
+          <details className="cursor-pointer">
+            <summary className="font-semibold text-gray-900 mb-2 text-base">
+              Select Markets ({selectedMarkets.length} selected)
+            </summary>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 mt-2 p-2 border rounded">
+              {allMarkets.map((market) => (
+                <label
+                  key={market}
+                  className="flex items-center space-x-1 text-sm cursor-pointer hover:bg-gray-100 p-1 rounded"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedMarkets.includes(market)}
+                    onChange={() => handleMarketToggle(market)}
+                    className="rounded text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="truncate text-gray-900 font-medium">
+                    {market.replace("perps/", "").toUpperCase()}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </details>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <ChartContainer config={chartConfig} className="h-[400px] w-full">
+          <LineChart
+            accessibilityLayer
+            data={chartData}
+            margin={{
+              left: 12,
+              right: 12,
+            }}
+          >
+            <CartesianGrid vertical={false} />
+            <XAxis
+              dataKey="time"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              tickFormatter={(value) => value.slice(0, 5)}
+            />
+            <YAxis
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              tickFormatter={(value) => `${Number(value).toFixed(2)}%`}
+            />
+            <ChartTooltip
+              cursor={false}
+              content={
+                <ChartTooltipContent
+                  labelFormatter={(value) => `Time: ${value}`}
+                  formatter={(value, name) => [
+                    `${Number(value).toFixed(2)}%`,
+                    chartConfig[name as keyof typeof chartConfig]?.label ||
+                      name,
+                  ]}
                 />
-                <span className="truncate text-gray-900 font-medium">
-                  {market.replace("perps/", "").toUpperCase()}
-                </span>
-              </label>
+              }
+            />
+            {selectedMarkets.map((market) => (
+              <Line
+                key={market}
+                dataKey={market}
+                type="monotone"
+                stroke={chartConfig[market]?.color}
+                strokeWidth={2}
+                dot={false}
+              />
             ))}
-          </div>
-        </details>
-      </div>
-      <div style={{ position: "relative", height: "400px", width: "100%" }}>
-        <Line
-          options={{ ...options, maintainAspectRatio: false }}
-          data={{ labels, datasets }}
-        />
-      </div>
-    </div>
+          </LineChart>
+        </ChartContainer>
+      </CardContent>
+    </Card>
   );
 }

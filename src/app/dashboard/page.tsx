@@ -15,32 +15,36 @@ export default async function DashboardPage() {
   const historicalData15min = allHistoricalData.slice(-48); // Last 12 hours (12 * 4 = 48 entries at 15-min intervals)
 
   // Create 1-hour data by taking every 4th entry from the end (15min * 4 = 1 hour)
-  const historicalData1hour = allHistoricalData.slice().reverse().filter((_, index) => index % 4 === 0).slice(0, 24).reverse();
+  const historicalData1hour = allHistoricalData
+    .slice()
+    .reverse()
+    .filter((_, index) => index % 4 === 0)
+    .slice(0, 24)
+    .reverse();
 
   // Create 4-hour data by taking every 16th entry from the end (15min * 16 = 4 hours)
-  const historicalData4hour = allHistoricalData.slice().reverse().filter((_, index) => index % 16 === 0).slice(0, 48).reverse();
+  const historicalData4hour = allHistoricalData
+    .slice()
+    .reverse()
+    .filter((_, index) => index % 16 === 0)
+    .slice(0, 48)
+    .reverse();
 
   const currentRates = historicalData15min[historicalData15min.length - 1];
 
   // Default selected markets for the funding rate chart
-  const defaultChartMarkets = [
-    "perps/ulink",
-    "perps/uakt",
-    "perps/uinj",
-    "perps/ubtc",
-    "perps/ueth",
-  ].filter((market) => currentRates.data[market]); // Only include if they exist
+  const defaultChartMarkets = ["perps/ulink"].filter(
+    (market) => currentRates.data[market]
+  ); // Only include if they exist
 
   // Default market for OI analysis
   const defaultOIMarket = "perps/ulink";
 
   return (
-    <div className="min-h-screen bg-background p-8">
+    <div className="min-h-screen bg-background p-8 bg-slate-100">
       <div className="mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold">
-            BVB Data Dashboard
-          </h1>
+          <h1 className="text-3xl font-bold">BVB Data Dashboard</h1>
           <GitHubButton url="https://github.com/HoiPangCHEUNG/bvb-dashboard" />
         </div>
 

@@ -26,7 +26,7 @@ export default function DashboardClient({
   defaultOIMarket,
 }: DashboardClientProps) {
   const [selectedTimeFrame, setSelectedTimeFrame] =
-    useState<TimeFrame>("15 min");
+    useState<TimeFrame>("1 hour");
 
   // Get the appropriate historical data based on selected timeframe
   const getHistoricalDataForTimeFrame = (
@@ -40,7 +40,7 @@ export default function DashboardClient({
       case "4 hour":
         return historicalData4hour;
       default:
-        return historicalData15min;
+        return historicalData1hour;
     }
   };
 

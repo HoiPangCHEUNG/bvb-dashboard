@@ -2,26 +2,15 @@
 
 import React, { useState } from "react";
 import Select from "react-select";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ChartOptions,
-} from "chart.js";
-import { Bar } from "react-chartjs-2";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 
 interface FundingRateEntry {
   fundingRate: number;
@@ -81,147 +70,119 @@ export default function OpenInterestChart({
   const marketToShow = selectedMarket?.value || allMarkets[0];
 
   // Prepare chart data
-  const labels = historicalData.map((entry) =>
-    new Date(entry.timestamp).toLocaleTimeString()
-  );
+  const chartData = historicalData.map((entry) => {
+    const longOI = entry.data[marketToShow]?.longOI || "0";
+    const shortOI = entry.data[marketToShow]?.shortOI || "0";
 
-  const longOIData = historicalData.map((entry) => {
-    const oi = entry.data[marketToShow]?.longOI || "0";
-    return parseFloat(oi) / 1e6; // Convert from smallest unit (6 decimals) to USD
+    return {
+      time: new Date(entry.timestamp).toLocaleTimeString(),
+      longOI: parseFloat(longOI) / 1e6, // Convert from smallest unit (6 decimals) to USD
+      shortOI: parseFloat(shortOI) / 1e6, // Convert from smallest unit (6 decimals) to USD
+    };
   });
 
-  const shortOIData = historicalData.map((entry) => {
-    const oi = entry.data[marketToShow]?.shortOI || "0";
-    return parseFloat(oi) / 1e6; // Convert from smallest unit (6 decimals) to USD
-  });
-
-  const datasets = [
-    {
+  const chartConfig = {
+    shortOI: {
       label: "Long OI",
-      data: longOIData,
-      backgroundColor: "rgba(75, 192, 75, 0.6)",
-      borderColor: "rgba(75, 192, 75, 1)",
-      borderWidth: 1,
+      color: "oklch(0.809 0.105 251.813)",
     },
-    {
+    longOI: {
       label: "Short OI",
-      data: shortOIData,
-      backgroundColor: "rgba(255, 99, 99, 0.6)",
-      borderColor: "rgba(255, 99, 99, 1)",
-      borderWidth: 1,
+      color: "oklch(0.623 0.214 259.815)",
     },
-  ];
-
-  const options: ChartOptions<"bar"> = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: "top" as const,
-      },
-      title: {
-        display: true,
-        text: `Open Interest - ${marketToShow
-          .replace("perps/", "")
-          .toUpperCase()}`,
-      },
-      tooltip: {
-        callbacks: {
-          label: (context) => {
-            const label = context.dataset.label || "";
-            const value = context.parsed.y;
-            if (value >= 1000000) {
-              return `${label}: $${(value / 1000000).toFixed(2)}M`;
-            } else if (value >= 1000) {
-              return `${label}: $${(value / 1000).toFixed(2)}K`;
-            } else {
-              return `${label}: $${value.toFixed(2)}`;
-            }
-          },
-        },
-      },
-    },
-    scales: {
-      y: {
-        title: {
-          display: true,
-          text: "Open Interest (USD)",
-        },
-        grid: {
-          color: "rgba(0, 0, 0, 0.1)",
-        },
-        ticks: {
-          callback: function (value) {
-            const numValue = Number(value);
-            if (numValue >= 1000000) {
-              return "$" + (numValue / 1000000).toFixed(1) + "M";
-            } else if (numValue >= 1000) {
-              return "$" + (numValue / 1000).toFixed(0) + "K";
-            } else {
-              return "$" + numValue.toFixed(0);
-            }
-          },
-        },
-      },
-      x: {
-        title: {
-          display: true,
-          text: "Time",
-        },
-        grid: {
-          color: "rgba(0, 0, 0, 0.1)",
-        },
-      },
-    },
-  };
+  } satisfies ChartConfig;
 
   return (
-    <div className="w-full p-4 bg-white rounded-lg shadow">
-      <div className="mb-4">
-        <label
-          htmlFor="market-select"
-          className="block text-base font-semibold text-gray-900 mb-2"
-        >
-          Select Market:
-        </label>
-        <Select
-          id="market-select"
-          instanceId="market-select"
-          value={selectedMarket}
-          onChange={(newValue) => setSelectedMarket(newValue)}
-          options={marketOptions}
-          className="react-select-container"
-          classNamePrefix="react-select"
-          placeholder="Select a market..."
-          isClearable={false}
-          isSearchable={true}
-          styles={{
-            control: (provided) => ({
-              ...provided,
-              fontSize: "16px",
-              fontWeight: "500",
-              minHeight: "42px",
-            }),
-            option: (provided, state) => ({
-              ...provided,
-              fontSize: "16px",
-              fontWeight: "500",
-              color: state.isSelected ? provided.color : "#111827",
-            }),
-            singleValue: (provided) => ({
-              ...provided,
-              color: "#111827",
-              fontSize: "16px",
-              fontWeight: "500",
-            }),
-          }}
-        />
-      </div>
-      <div style={{ position: "relative", height: "400px", width: "100%" }}>
-        <Bar
-          options={{ ...options, maintainAspectRatio: false }}
-          data={{ labels, datasets }}
-        />
-      </div>
-    </div>
+    <Card className="w-full">
+      <CardHeader>
+        <div className="mb-4">
+          <label
+            htmlFor="market-select"
+            className="block text-base font-semibold text-gray-900 mb-2"
+          >
+            Select Market:
+          </label>
+          <Select
+            id="market-select"
+            instanceId="market-select"
+            value={selectedMarket}
+            onChange={(newValue) => setSelectedMarket(newValue)}
+            options={marketOptions}
+            className="react-select-container"
+            classNamePrefix="react-select"
+            placeholder="Select a market..."
+            isClearable={false}
+            isSearchable={true}
+            styles={{
+              control: (provided) => ({
+                ...provided,
+                fontSize: "16px",
+                fontWeight: "500",
+                minHeight: "42px",
+              }),
+              option: (provided, state) => ({
+                ...provided,
+                fontSize: "16px",
+                fontWeight: "500",
+                color: state.isSelected ? provided.color : "#111827",
+              }),
+              singleValue: (provided) => ({
+                ...provided,
+                color: "#111827",
+                fontSize: "16px",
+                fontWeight: "500",
+              }),
+            }}
+          />
+        </div>
+        <CardTitle>
+          Open Interest - {marketToShow.replace("perps/", "").toUpperCase()}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ChartContainer config={chartConfig} className="h-[400px] w-full">
+          <BarChart accessibilityLayer data={chartData}>
+            <CartesianGrid vertical={false} />
+            <XAxis
+              dataKey="time"
+              tickLine={false}
+              tickMargin={10}
+              axisLine={false}
+            />
+            <YAxis
+              tickFormatter={(value) => {
+                const numValue = Number(value);
+                if (numValue >= 1000000) {
+                  return "$" + (numValue / 1000000).toFixed(1) + "M";
+                } else if (numValue >= 1000) {
+                  return "$" + (numValue / 1000).toFixed(0) + "K";
+                } else {
+                  return "$" + numValue.toFixed(0);
+                }
+              }}
+            />
+            <ChartTooltip
+              cursor={false}
+              content={
+                <ChartTooltipContent
+                  formatter={(value, name) => {
+                    const numValue = Number(value);
+                    const formattedValue =
+                      numValue >= 1000000
+                        ? `$${(numValue / 1000000).toFixed(2)}M `
+                        : numValue >= 1000
+                        ? `$${(numValue / 1000).toFixed(2)}K `
+                        : `$${numValue.toFixed(2)} `;
+                    return [formattedValue, name];
+                  }}
+                />
+              }
+            />
+            <Bar dataKey="longOI" fill="var(--color-longOI)" radius={4} />
+            <Bar dataKey="shortOI" fill="var(--color-shortOI)" radius={4} />
+          </BarChart>
+        </ChartContainer>
+      </CardContent>
+    </Card>
   );
 }
