@@ -63,9 +63,9 @@ export async function POST(request: NextRequest) {
           // Stream the response
           for await (const event of result) {
             // Debug: log event structure in development
-            if (process.env.NODE_ENV === "development") {
-              console.log("Event structure:", JSON.stringify(event, null, 2));
-            }
+            // if (process.env.NODE_ENV === "development") {
+            //   console.log("Event structure:", JSON.stringify(event, null, 2));
+            // }
 
             // Extract content from the streaming event
             const delta = event?.data?.choices?.[0]?.delta;

@@ -66,6 +66,7 @@ export const getMarkets = async () => {
       const cachedMarkets = await marketsCollection
         .find({}, { projection: { denom: 1, display: 1, _id: 0 } })
         .toArray();
+
       return cachedMarkets;
     }
 
@@ -120,12 +121,18 @@ export const getFundingRates = async () => {
       return cachedResult.data;
     }
 
-    // Fetch fresh funding rates
+    // Fetch fresh funding rates and prices
     const client = await getReadOnlyClient();
     const rates = await client.queryContractSmart(MARS.PERPS, {
       markets: {
         limit: 50,
       },
+    });
+
+    // Get prices for all denoms
+    const allMarkets = await getMarkets();
+    const prices = await client.queryContractSmart(MARS.ORACLE, {
+      prices_by_denoms: { denoms: allMarkets.map((m) => m.denom) },
     });
 
     const now = Date.now();
@@ -136,6 +143,7 @@ export const getFundingRates = async () => {
         fundingRate: parseFloat(rate.current_funding_rate || 0) * 365 * 100,
         longOI: rate.long_oi_value,
         shortOI: rate.short_oi_value,
+        price: prices[rate.denom] || "0",
         timestamp: now,
       };
     }
@@ -239,14 +247,3 @@ const filterByTimeFrame = (
       return hourlyEntries;
   }
 };
-
-// export const getCurrentFundingRates = async (): Promise<
-//   Record<string, FundingRateEntry>
-// > => {
-//   try {
-//     const cachedResult = await getLatestFundingRateWithCache(Infinity);
-//     return cachedResult.data || {};
-//   } catch (err) {
-//     return {};
-//   }
-// };
