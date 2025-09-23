@@ -216,7 +216,7 @@ export default function FundingRateAlerts({
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 w-full">
               {alerts.slice(0, 10).map((alert, idx) => (
                 <div
                   key={`${alert.market}-${idx}`}
@@ -304,11 +304,13 @@ export default function FundingRateAlerts({
                             new Date(currentRates.timestamp).toDateString() && (
                             <span className="ml-1">
                               (
-                              {new Date(previousTimestamp).toLocaleDateString()}{" "}
+                              {new Date(previousTimestamp).toLocaleDateString(
+                                "en-CA"
+                              )}{" "}
                               →{" "}
                               {new Date(
                                 currentRates.timestamp
-                              ).toLocaleDateString()}
+                              ).toLocaleDateString("en-CA")}
                               )
                             </span>
                           )}
