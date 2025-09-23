@@ -5,6 +5,7 @@ import { TimeFrame } from "../../services/bvb";
 import TimeFrameSelector from "./TimeFrameSelector";
 import FundingRateChart from "./FundingRateChart";
 import OpenInterestChart from "./OpenInterestChart";
+import PriceChart from "./PriceChart";
 import FundingRateAlerts from "./FundingRateAlerts";
 import { HistoricalDataEntry } from "../types/dashboardClient";
 
@@ -54,35 +55,54 @@ export default function DashboardClient({
         onTimeFrameChange={setSelectedTimeFrame}
       />
 
-      {/* Alerts Section */}
-      <div className="mb-8">
-        <FundingRateAlerts
-          historicalData={currentHistoricalData}
-          currentRates={currentRates}
-          selectedTimeFrame={selectedTimeFrame}
-        />
-      </div>
-
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 gap-8">
-        <div>
+      {/* First Row: Alerts and Funding Rate Trends */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 lg:items-stretch">
+        <div className="flex flex-col">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+            Funding Rate Alerts ({selectedTimeFrame})
+          </h2>
+          <FundingRateAlerts
+            historicalData={currentHistoricalData}
+            currentRates={currentRates}
+            selectedTimeFrame={selectedTimeFrame}
+          />
+        </div>
+        <div className="flex flex-col">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">
             Funding Rate Trends ({selectedTimeFrame})
           </h2>
-          <FundingRateChart
-            historicalData={currentHistoricalData}
-            initialSelectedMarkets={defaultChartMarkets}
-          />
+          <div className="flex-1">
+            <FundingRateChart
+              historicalData={currentHistoricalData}
+              initialSelectedMarkets={defaultChartMarkets}
+            />
+          </div>
         </div>
+      </div>
 
-        <div>
+      {/* Second Row: Open Interest and Price Trends */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:items-stretch">
+        <div className="flex flex-col">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">
-            Open Interest Analysis ({selectedTimeFrame})
+            Open Interest Comparison ({selectedTimeFrame})
           </h2>
-          <OpenInterestChart
-            historicalData={currentHistoricalData}
-            initialSelectedMarket={defaultOIMarket}
-          />
+          <div className="flex-1">
+            <OpenInterestChart
+              historicalData={currentHistoricalData}
+              initialSelectedMarket={defaultOIMarket}
+            />
+          </div>
+        </div>
+        <div className="flex flex-col">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+            Price Movement ({selectedTimeFrame})
+          </h2>
+          <div className="flex-1">
+            <PriceChart
+              historicalData={currentHistoricalData}
+              initialSelectedMarkets={defaultChartMarkets}
+            />
+          </div>
         </div>
       </div>
     </>

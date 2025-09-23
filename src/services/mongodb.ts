@@ -42,6 +42,7 @@ export interface FundingRateEntry {
   fundingRate: number;
   longOI: string;
   shortOI: string;
+  price?: string;
   timestamp: number;
 }
 

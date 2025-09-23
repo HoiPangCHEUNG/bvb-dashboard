@@ -19,6 +19,7 @@ interface FundingRateEntry {
   fundingRate: number;
   longOI: string;
   shortOI: string;
+  price?: string;
   timestamp: number;
 }
 
@@ -27,15 +28,15 @@ interface HistoricalDataEntry {
   data: Record<string, FundingRateEntry>;
 }
 
-interface FundingRateChartProps {
+interface PriceChartProps {
   historicalData: HistoricalDataEntry[];
   initialSelectedMarkets?: string[];
 }
 
-export default function FundingRateChart({
+export default function PriceChart({
   historicalData,
   initialSelectedMarkets,
-}: FundingRateChartProps) {
+}: PriceChartProps) {
   // Get all unique markets (safe even if historicalData is empty)
   const allMarkets = Array.from(
     new Set(
@@ -63,7 +64,8 @@ export default function FundingRateChart({
       };
 
       selectedMarkets.forEach((market) => {
-        dataPoint[market] = entry.data[market]?.fundingRate || 0;
+        const price = entry.data[market]?.price;
+        dataPoint[market] = price ? parseFloat(price) : 0;
       });
 
       return dataPoint;
@@ -98,7 +100,7 @@ export default function FundingRateChart({
 
   // Early return after hooks
   if (!historicalData || historicalData.length === 0) {
-    return <div>No funding rate data available</div>;
+    return <div>No price data available</div>;
   }
 
   // Handle market selection
@@ -113,10 +115,10 @@ export default function FundingRateChart({
   };
 
   return (
-    <Card className="w-full">
+    <Card className="w-full h-full">
       <CardHeader>
         <CardDescription>
-          Annualized funding rates for selected perpetual futures markets.
+          Price data for selected perpetual futures markets.
         </CardDescription>
         <div className="mt-4">
           <details className="cursor-pointer">
@@ -166,7 +168,7 @@ export default function FundingRateChart({
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              tickFormatter={(value) => `${Number(value).toFixed(2)}%`}
+              tickFormatter={(value) => `$${Number(value).toFixed(2)}`}
             />
             <ChartTooltip
               cursor={false}
@@ -174,7 +176,7 @@ export default function FundingRateChart({
                 <ChartTooltipContent
                   labelFormatter={(value) => `Time: ${value}`}
                   formatter={(value, name) => [
-                    `${Number(value).toFixed(2)}%`,
+                    `$${Number(value).toFixed(2)}`,
                     chartConfig[name as keyof typeof chartConfig]?.label ||
                       name,
                   ]}
