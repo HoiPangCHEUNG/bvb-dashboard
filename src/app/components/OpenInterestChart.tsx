@@ -75,7 +75,11 @@ export default function OpenInterestChart({
     const shortOI = entry.data[marketToShow]?.shortOI || "0";
 
     return {
-      time: new Date(entry.timestamp).toLocaleTimeString(),
+      time: new Date(entry.timestamp).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      }),
       longOI: parseFloat(longOI) / 1e6, // Convert from smallest unit (6 decimals) to USD
       shortOI: parseFloat(shortOI) / 1e6, // Convert from smallest unit (6 decimals) to USD
     };
@@ -83,17 +87,17 @@ export default function OpenInterestChart({
 
   const chartConfig = {
     shortOI: {
-      label: "Long OI",
+      label: "Short OI",
       color: "oklch(0.809 0.105 251.813)",
     },
     longOI: {
-      label: "Short OI",
+      label: "Long OI",
       color: "oklch(0.623 0.214 259.815)",
     },
   } satisfies ChartConfig;
 
   return (
-    <Card className="w-full">
+    <Card className="w-full h-full">
       <CardHeader>
         <div className="mb-4">
           <label
@@ -140,7 +144,7 @@ export default function OpenInterestChart({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-[400px] w-full">
+        <ChartContainer config={chartConfig} className="w-full h-full">
           <BarChart accessibilityLayer data={chartData}>
             <CartesianGrid vertical={false} />
             <XAxis
@@ -162,21 +166,53 @@ export default function OpenInterestChart({
               }}
             />
             <ChartTooltip
-              cursor={false}
               content={
                 <ChartTooltipContent
-                  formatter={(value, name) => {
-                    const numValue = Number(value);
-                    const formattedValue =
-                      numValue >= 1000000
-                        ? `$${(numValue / 1000000).toFixed(2)}M `
-                        : numValue >= 1000
-                        ? `$${(numValue / 1000).toFixed(2)}K `
-                        : `$${numValue.toFixed(2)} `;
-                    return [formattedValue, name];
-                  }}
+                  hideLabel
+                  className="w-[180px]"
+                  formatter={(value, name, item, index) => (
+                    <>
+                      <div
+                        className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
+                        style={
+                          {
+                            backgroundColor: `var(--color-${name})`,
+                          } as React.CSSProperties
+                        }
+                      />
+                      {chartConfig[name as keyof typeof chartConfig]?.label ||
+                        name}
+                      <div className="text-foreground ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums">
+                        {(() => {
+                          const numValue = Number(value);
+                          return numValue >= 1000000
+                            ? `$${(numValue / 1000000).toFixed(2)}M`
+                            : numValue >= 1000
+                            ? `$${(numValue / 1000).toFixed(2)}K`
+                            : `$${numValue.toFixed(2)}`;
+                        })()}
+                      </div>
+                      {/* Add total after the last item */}
+                      {index === 1 && (
+                        <div className="text-foreground mt-1.5 flex basis-full items-center border-t pt-1.5 text-xs font-medium">
+                          Total
+                          <div className="text-foreground ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums">
+                            {(() => {
+                              const totalValue = item.payload.longOI + item.payload.shortOI;
+                              return totalValue >= 1000000
+                                ? `$${(totalValue / 1000000).toFixed(2)}M`
+                                : totalValue >= 1000
+                                ? `$${(totalValue / 1000).toFixed(2)}K`
+                                : `$${totalValue.toFixed(2)}`;
+                            })()}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
                 />
               }
+              cursor={false}
             />
             <Bar dataKey="longOI" fill="var(--color-longOI)" radius={4} />
             <Bar dataKey="shortOI" fill="var(--color-shortOI)" radius={4} />

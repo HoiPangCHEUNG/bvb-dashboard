@@ -69,12 +69,12 @@ export default function DashboardClient({
         </div>
         <div className="flex flex-col">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">
-            Funding Rate Trends ({selectedTimeFrame})
+            Open Interest Comparison ({selectedTimeFrame})
           </h2>
           <div className="flex-1">
-            <FundingRateChart
+            <OpenInterestChart
               historicalData={currentHistoricalData}
-              initialSelectedMarkets={defaultChartMarkets}
+              initialSelectedMarket={defaultOIMarket}
             />
           </div>
         </div>
@@ -84,12 +84,12 @@ export default function DashboardClient({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:items-stretch">
         <div className="flex flex-col">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">
-            Open Interest Comparison ({selectedTimeFrame})
+            Funding Rate Trends ({selectedTimeFrame})
           </h2>
           <div className="flex-1">
-            <OpenInterestChart
+            <FundingRateChart
               historicalData={currentHistoricalData}
-              initialSelectedMarket={defaultOIMarket}
+              initialSelectedMarkets={defaultChartMarkets}
             />
           </div>
         </div>

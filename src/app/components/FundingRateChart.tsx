@@ -58,7 +58,11 @@ export default function FundingRateChart({
 
     return historicalData.map((entry) => {
       const dataPoint: Record<string, unknown> = {
-        time: new Date(entry.timestamp).toLocaleTimeString(),
+        time: new Date(entry.timestamp).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        }),
         timestamp: entry.timestamp,
       };
 
@@ -107,6 +111,9 @@ export default function FundingRateChart({
       if (prev.includes(market)) {
         return prev.filter((m) => m !== market);
       } else {
+        if (prev.length >= 5) {
+          return prev;
+        }
         return [...prev, market];
       }
     });
@@ -133,7 +140,8 @@ export default function FundingRateChart({
                     type="checkbox"
                     checked={selectedMarkets.includes(market)}
                     onChange={() => handleMarketToggle(market)}
-                    className="rounded text-blue-600 focus:ring-blue-500"
+                    disabled={!selectedMarkets.includes(market) && selectedMarkets.length >= 5}
+                    className="rounded text-blue-600 focus:ring-blue-500 disabled:opacity-50"
                   />
                   <span className="truncate text-gray-900 font-medium">
                     {market.replace("perps/", "").toUpperCase()}
@@ -145,7 +153,7 @@ export default function FundingRateChart({
         </div>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-[400px] w-full">
+        <ChartContainer config={chartConfig} className="w-full">
           <LineChart
             accessibilityLayer
             data={chartData}
@@ -160,7 +168,6 @@ export default function FundingRateChart({
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              tickFormatter={(value) => value.slice(0, 5)}
             />
             <YAxis
               tickLine={false}
@@ -169,17 +176,30 @@ export default function FundingRateChart({
               tickFormatter={(value) => `${Number(value).toFixed(2)}%`}
             />
             <ChartTooltip
-              cursor={false}
               content={
                 <ChartTooltipContent
-                  labelFormatter={(value) => `Time: ${value}`}
-                  formatter={(value, name) => [
-                    `${Number(value).toFixed(2)}%`,
-                    chartConfig[name as keyof typeof chartConfig]?.label ||
-                      name,
-                  ]}
+                  hideLabel
+                  className="w-[180px]"
+                  formatter={(value, name) => (
+                    <>
+                      <div
+                        className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
+                        style={
+                          {
+                            backgroundColor: chartConfig[name as keyof typeof chartConfig]?.color,
+                          } as React.CSSProperties
+                        }
+                      />
+                      {chartConfig[name as keyof typeof chartConfig]?.label ||
+                        name}
+                      <div className="text-foreground ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums">
+                        {Number(value).toFixed(2)}%
+                      </div>
+                    </>
+                  )}
                 />
               }
+              cursor={false}
             />
             {selectedMarkets.map((market) => (
               <Line
