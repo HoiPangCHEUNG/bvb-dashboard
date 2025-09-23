@@ -143,7 +143,7 @@ export default function OpenInterestChart({
           Open Interest - {marketToShow.replace("perps/", "").toUpperCase()}
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex flex-grow">
         <ChartContainer config={chartConfig} className="w-full h-full">
           <BarChart accessibilityLayer data={chartData}>
             <CartesianGrid vertical={false} />
@@ -198,7 +198,8 @@ export default function OpenInterestChart({
                           Total
                           <div className="text-foreground ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums">
                             {(() => {
-                              const totalValue = item.payload.longOI + item.payload.shortOI;
+                              const totalValue =
+                                item.payload.longOI + item.payload.shortOI;
                               return totalValue >= 1000000
                                 ? `$${(totalValue / 1000000).toFixed(2)}M`
                                 : totalValue >= 1000
