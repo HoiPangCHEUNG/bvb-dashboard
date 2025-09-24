@@ -8,6 +8,7 @@ import {
   CardDescription,
   CardHeader,
 } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   ChartConfig,
   ChartContainer,
@@ -128,10 +129,11 @@ export default function PriceChart({
           Price data for selected perpetual futures markets.
         </CardDescription>
         <div className="mt-4">
-          <details className="cursor-pointer">
-            <summary className="font-semibold text-gray-900 mb-2 text-base">
-              Select Markets ({selectedMarkets.length} selected)
-            </summary>
+          <div className="flex items-center justify-between mb-2">
+            <details className="cursor-pointer flex-grow">
+              <summary className="font-semibold text-gray-900 text-base">
+                Select Markets ({selectedMarkets.length} selected)
+              </summary>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 mt-2 p-2 border rounded">
               {allMarkets.map((market) => (
                 <label
@@ -150,8 +152,19 @@ export default function PriceChart({
                   </span>
                 </label>
               ))}
-            </div>
-          </details>
+              </div>
+            </details>
+            {selectedMarkets.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {selectedMarkets.map((market) => (
+                  <Badge key={market} variant="secondary" className="cursor-pointer" onClick={() => handleMarketToggle(market)}>
+                    {market.replace("perps/", "").toUpperCase()}
+                    <span className="ml-1 text-xs">×</span>
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent>
