@@ -1,10 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
-import Select from "react-select";
+import React from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
@@ -26,48 +31,24 @@ interface HistoricalDataEntry {
 
 interface OpenInterestChartProps {
   historicalData: HistoricalDataEntry[];
-  initialSelectedMarket?: string;
+  selectedMarket?: string;
 }
 
 export default function OpenInterestChart({
   historicalData,
-  initialSelectedMarket,
+  selectedMarket,
 }: OpenInterestChartProps) {
-  // Get all unique markets (safe even if historicalData is empty)
-  const allMarkets = Array.from(
-    new Set(
-      historicalData && historicalData.length > 0
-        ? historicalData.flatMap((entry) => Object.keys(entry.data))
-        : []
-    )
-  ).sort();
-
-  // Prepare options for React Select
-  const marketOptions = allMarkets.map((market) => ({
-    value: market,
-    label: market.replace("perps/", "").toUpperCase(),
-  }));
-
-  // State for selected market - must be before any returns
-  const [selectedMarket, setSelectedMarket] = useState<{
-    value: string;
-    label: string;
-  } | null>(() => {
-    // Use a function to ensure consistent initial state
-    if (marketOptions.length === 0) return null;
-    return (
-      marketOptions.find((opt) => opt.value === initialSelectedMarket) ||
-      marketOptions[0] ||
-      null
-    );
-  });
-
-  // Early return after hooks
+  // Early return if no data
   if (!historicalData || historicalData.length === 0) {
     return <div>No open interest data available</div>;
   }
 
-  const marketToShow = selectedMarket?.value || allMarkets[0];
+  // Get all unique markets for fallback
+  const allMarkets = Array.from(
+    new Set(historicalData.flatMap((entry) => Object.keys(entry.data)))
+  ).sort();
+
+  const marketToShow = selectedMarket || allMarkets[0];
 
   // Prepare chart data
   const chartData = historicalData.map((entry) => {
@@ -99,49 +80,9 @@ export default function OpenInterestChart({
   return (
     <Card className="w-full h-full">
       <CardHeader>
-        <div className="mb-4">
-          <label
-            htmlFor="market-select"
-            className="block text-base font-semibold text-gray-900 mb-2"
-          >
-            Select Market:
-          </label>
-          <Select
-            id="market-select"
-            instanceId="market-select"
-            value={selectedMarket}
-            onChange={(newValue) => setSelectedMarket(newValue)}
-            options={marketOptions}
-            className="react-select-container"
-            classNamePrefix="react-select"
-            placeholder="Select a market..."
-            isClearable={false}
-            isSearchable={true}
-            styles={{
-              control: (provided) => ({
-                ...provided,
-                fontSize: "16px",
-                fontWeight: "500",
-                minHeight: "42px",
-              }),
-              option: (provided, state) => ({
-                ...provided,
-                fontSize: "16px",
-                fontWeight: "500",
-                color: state.isSelected ? provided.color : "#111827",
-              }),
-              singleValue: (provided) => ({
-                ...provided,
-                color: "#111827",
-                fontSize: "16px",
-                fontWeight: "500",
-              }),
-            }}
-          />
-        </div>
-        <CardTitle>
+        <CardDescription>
           Open Interest - {marketToShow.replace("perps/", "").toUpperCase()}
-        </CardTitle>
+        </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-grow">
         <ChartContainer config={chartConfig} className="w-full h-full">
