@@ -4,6 +4,7 @@ import React from "react";
 import { HistoricalDataEntry } from "../types/dashboardClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { processMarketSentiment } from "../../utils/dataProcessors";
 
 interface MarketSentimentProps {
   currentRates: HistoricalDataEntry;
@@ -12,59 +13,22 @@ interface MarketSentimentProps {
 export default function MarketSentiment({
   currentRates,
 }: MarketSentimentProps) {
-  // Calculate sentiment metrics
-  const markets = Object.entries(currentRates.data);
-  const totalMarkets = markets.length;
-
-  // Count positive vs negative funding
-  const positiveFunding = markets.filter(
-    ([_, rate]) => rate.fundingRate > 0
-  ).length;
-  const negativeFunding = markets.filter(
-    ([_, rate]) => rate.fundingRate < 0
-  ).length;
-  const neutralFunding = markets.filter(
-    ([_, rate]) => rate.fundingRate === 0
-  ).length;
-
-  // Calculate OI-weighted sentiment
-  let totalWeightedFunding = 0;
-  let totalOI = 0;
-
-  markets.forEach(([_, rate]) => {
-    const marketOI = (parseFloat(rate.longOI) + parseFloat(rate.shortOI)) / 1e6;
-    totalWeightedFunding += rate.fundingRate * marketOI;
-    totalOI += marketOI;
-  });
-
-  const weightedSentiment = totalOI > 0 ? totalWeightedFunding / totalOI : 0;
-
-  // Calculate extreme rates
-  const extremePositive = markets.filter(
-    ([_, rate]) => rate.fundingRate > 100
-  ).length;
-  const extremeNegative = markets.filter(
-    ([_, rate]) => rate.fundingRate < -100
-  ).length;
-
-  // Determine overall market sentiment
-  const getSentimentLabel = () => {
-    if (weightedSentiment > 50)
-      return { label: "Extremely Bullish", color: "text-green-500" };
-    if (weightedSentiment > 20)
-      return { label: "Bullish", color: "text-green-500" };
-    if (weightedSentiment > 5)
-      return { label: "Slightly Bullish", color: "text-green-400" };
-    if (weightedSentiment < -50)
-      return { label: "Extremely Bearish", color: "text-red-500" };
-    if (weightedSentiment < -20)
-      return { label: "Bearish", color: "text-red-500" };
-    if (weightedSentiment < -5)
-      return { label: "Slightly Bearish", color: "text-red-400" };
-    return { label: "Neutral", color: "text-gray-600" };
-  };
-
-  const sentiment = getSentimentLabel();
+  // Use the shared data processor with destructuring
+  const {
+    totalMarkets,
+    positiveFunding,
+    negativeFunding,
+    neutralFunding,
+    weightedSentiment,
+    sentimentLabel,
+    sentimentColor,
+    extremePositive,
+    extremeNegative,
+    totalOI,
+    positiveFundingPercentage,
+    negativeFundingPercentage,
+    neutralFundingPercentage,
+  } = processMarketSentiment(currentRates);
 
   return (
     <Card>
@@ -78,8 +42,8 @@ export default function MarketSentiment({
             <h4 className="text-sm font-medium text-gray-600 mb-2">
               Overall Market Sentiment
             </h4>
-            <p className={`text-3xl font-bold ${sentiment.color} mb-1`}>
-              {sentiment.label}
+            <p className={`text-3xl font-bold ${sentimentColor} mb-1`}>
+              {sentimentLabel}
             </p>
             <p className="text-sm text-gray-600 bg-gray-200 rounded-full px-3 py-1 inline-block">
               Weighted Rate: {weightedSentiment.toFixed(2)}%
@@ -104,7 +68,7 @@ export default function MarketSentiment({
                     {positiveFunding}
                   </div>
                   <div className="text-xs text-gray-500">
-                    {((positiveFunding / totalMarkets) * 100).toFixed(1)}%
+                    {positiveFundingPercentage.toFixed(1)}%
                   </div>
                 </div>
               </div>
@@ -118,7 +82,7 @@ export default function MarketSentiment({
                     {negativeFunding}
                   </div>
                   <div className="text-xs text-gray-500">
-                    {((negativeFunding / totalMarkets) * 100).toFixed(1)}%
+                    {negativeFundingPercentage.toFixed(1)}%
                   </div>
                 </div>
               </div>
@@ -132,7 +96,7 @@ export default function MarketSentiment({
                     {neutralFunding}
                   </div>
                   <div className="text-xs text-gray-500">
-                    {((neutralFunding / totalMarkets) * 100).toFixed(1)}%
+                    {neutralFundingPercentage.toFixed(1)}%
                   </div>
                 </div>
               </div>
