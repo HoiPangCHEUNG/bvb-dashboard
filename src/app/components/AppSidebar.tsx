@@ -79,7 +79,6 @@ export function AppSidebar() {
     }
 
     try {
-      console.log(messages);
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -202,7 +201,9 @@ export function AppSidebar() {
                       {message.role === "assistant" ? (
                         <ReactMarkdown>{message.content}</ReactMarkdown>
                       ) : (
-                        <div className="whitespace-pre-wrap">{message.content}</div>
+                        <div className="whitespace-pre-wrap">
+                          {message.content}
+                        </div>
                       )}
                     </div>
                     <div className={`text-xs mt-1 opacity-70`}>
