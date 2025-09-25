@@ -11,6 +11,8 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AiChatSidebar } from "@/app/components/AiChatSidebar";
 import { SidebarToggle } from "@/app/components/SidebarToggle";
 
+export const revalidate = 60;
+
 export default async function DashboardPage() {
   // Fetch all raw data once for 48 hours to reduce DB calls
   const allHistoricalData = await getHistoricalFundingRates(48, "15 min");
@@ -61,7 +63,9 @@ export default async function DashboardPage() {
             <div className="min-h-screen bg-background p-8 bg-slate-100">
               <div className="mx-auto">
                 <div className="flex items-center justify-between mb-8">
-                  <h1 className="text-3xl font-bold">BVB Dashboard (v 0.1.0)</h1>
+                  <h1 className="text-3xl font-bold">
+                    BVB Dashboard (v 0.1.0)
+                  </h1>
                   <GitHubButton url="https://github.com/HoiPangCHEUNG/bvb-dashboard" />
                 </div>
 
