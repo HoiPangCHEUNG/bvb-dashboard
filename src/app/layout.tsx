@@ -13,8 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Dashboard",
-  description: "a simple BVB dashboard",
+  title: "BVB Funding Rate Dashboard | Neutron Blockchain",
+  description:
+    "Comprehensive funding rate monitoring dashboard for Bull vs. Bear markets on Neutron blockchain.",
 };
 
 export default function RootLayout({
