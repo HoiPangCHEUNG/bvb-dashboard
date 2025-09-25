@@ -6,6 +6,10 @@ import TopFundingRatesTable from "../components/TopFundingRatesTable";
 import { getHistoricalFundingRates } from "../../services/bvb";
 import DashboardClient from "../components/DashboardClient";
 import GitHubButton from "../components/GitHubButton";
+import { DashboardProvider } from "../components/DashboardWrapper";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/app/components/AppSidebar";
+import { SidebarToggle } from "@/app/components/SidebarToggle";
 
 export default async function DashboardPage() {
   // Fetch all raw data once for 48 hours to reduce DB calls
@@ -41,43 +45,59 @@ export default async function DashboardPage() {
   const defaultOIMarket = "perps/ulink";
 
   return (
-    <div className="min-h-screen bg-background p-8 bg-slate-100">
-      <div className="mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold">BVB Data Dashboard</h1>
-          <GitHubButton url="https://github.com/HoiPangCHEUNG/bvb-dashboard" />
-        </div>
+    <SidebarProvider
+      defaultOpen={false}
+      style={{ "--sidebar-width": "24rem" } as React.CSSProperties}
+    >
+      <DashboardProvider
+        historicalData15min={historicalData15min}
+        historicalData4hour={historicalData4hour}
+      >
+        <div className="flex min-h-screen w-full">
+          <main className="flex-1">
+            <div className="min-h-screen bg-background p-8 bg-slate-100">
+              <div className="mx-auto">
+                <div className="flex items-center justify-between mb-8">
+                  <h1 className="text-3xl font-bold">BVB Data Dashboard</h1>
+                  <GitHubButton url="https://github.com/HoiPangCHEUNG/bvb-dashboard" />
+                </div>
 
-        {/* Risk Overview Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          <MarketSentiment currentRates={currentRates} />
-          <RiskDashboard
-            currentRates={currentRates}
-            historicalData={historicalData15min}
-          />
-        </div>
+                {/* Risk Overview Section */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                  <MarketSentiment currentRates={currentRates} />
+                  <RiskDashboard
+                    currentRates={currentRates}
+                    historicalData={historicalData15min}
+                  />
+                </div>
 
-        {/* Analysis Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          <SqueezePotential currentRates={currentRates} />
-          <OIConcentrationRisk currentRates={currentRates} />
-        </div>
+                {/* Analysis Section */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                  <SqueezePotential currentRates={currentRates} />
+                  <OIConcentrationRisk currentRates={currentRates} />
+                </div>
 
-        {/* TimeFrame Selector, Alerts and Charts */}
-        <DashboardClient
-          historicalData15min={historicalData15min}
-          historicalData1hour={historicalData1hour}
-          historicalData4hour={historicalData4hour}
-          currentRates={currentRates}
-          defaultChartMarkets={defaultChartMarkets}
-          defaultOIMarket={defaultOIMarket}
-        />
+                {/* TimeFrame Selector, Alerts and Charts */}
+                <DashboardClient
+                  historicalData15min={historicalData15min}
+                  historicalData1hour={historicalData1hour}
+                  historicalData4hour={historicalData4hour}
+                  currentRates={currentRates}
+                  defaultChartMarkets={defaultChartMarkets}
+                  defaultOIMarket={defaultOIMarket}
+                />
 
-        {/* Top Funding Rates Table */}
-        <div className="mt-8">
-          <TopFundingRatesTable currentRates={currentRates.data} />
+                {/* Top Funding Rates Table */}
+                <div className="mt-8">
+                  <TopFundingRatesTable currentRates={currentRates.data} />
+                </div>
+              </div>
+            </div>
+          </main>
+          <AppSidebar />
         </div>
-      </div>
-    </div>
+        <SidebarToggle />
+      </DashboardProvider>
+    </SidebarProvider>
   );
 }

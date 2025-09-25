@@ -1,11 +1,9 @@
 "use client";
 
 import React from "react";
-import {
-  FundingRateEntry,
-  HistoricalDataEntry,
-} from "../types/dashboardClient";
+import { HistoricalDataEntry } from "../types/dashboardClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { processRiskDashboard } from "../../utils/dataProcessors";
 
 interface RiskDashboardProps {
   currentRates: HistoricalDataEntry;
@@ -16,160 +14,20 @@ export default function RiskDashboard({
   currentRates,
   historicalData,
 }: RiskDashboardProps) {
-  // Calculate various risk metrics
-  const calculateRiskMetrics = () => {
-    const markets = Object.entries(currentRates.data);
-
-    // Overall market metrics
-    let totalLongOI = 0;
-    let totalShortOI = 0;
-    let extremeFundingCount = 0;
-    let imbalancedMarkets = 0;
-    let volatilityScore = 0;
-
-    markets.forEach(([_, rate]) => {
-      const longOI = parseFloat(rate.longOI) / 1e6;
-      const shortOI = parseFloat(rate.shortOI) / 1e6;
-
-      totalLongOI += longOI;
-      totalShortOI += shortOI;
-
-      // Count extreme funding
-      if (Math.abs(rate.fundingRate) > 100) extremeFundingCount++;
-
-      // Count imbalanced markets
-      const ratio =
-        longOI > shortOI ? longOI / (shortOI || 1) : shortOI / (longOI || 1);
-      if (ratio > 5) imbalancedMarkets++;
-    });
-
-    // Calculate funding rate volatility
-    if (historicalData.length > 1) {
-      const recentData = historicalData.slice(-10);
-      const fundingChanges = recentData.slice(1).map((entry, idx) => {
-        const prevEntry = recentData[idx];
-        let totalChange = 0;
-        let count = 0;
-
-        Object.keys(entry.data).forEach((market) => {
-          if (prevEntry.data[market]) {
-            const change = Math.abs(
-              entry.data[market].fundingRate -
-                prevEntry.data[market].fundingRate
-            );
-            totalChange += change;
-            count++;
-          }
-        });
-
-        return count > 0 ? totalChange / count : 0;
-      });
-
-      volatilityScore =
-        fundingChanges.reduce((a, b) => a + b, 0) / fundingChanges.length;
-    }
-
-    // Calculate overall risk score (0-100)
-    let overallRisk = 0;
-
-    // Factor 1: OI Imbalance (0-25 points)
-    const oiImbalance =
-      Math.abs(totalLongOI - totalShortOI) / (totalLongOI + totalShortOI);
-    overallRisk += oiImbalance * 25;
-
-    // Factor 2: Extreme funding markets (0-25 points)
-    const extremeRatio = extremeFundingCount / markets.length;
-    overallRisk += extremeRatio * 25;
-
-    // Factor 3: Market concentration (0-25 points)
-    const concentrationRatio = imbalancedMarkets / markets.length;
-    overallRisk += concentrationRatio * 25;
-
-    // Factor 4: Volatility (0-25 points)
-    overallRisk += Math.min(volatilityScore, 25);
-
-    return {
-      overallRisk: Math.min(100, overallRisk),
-      totalLongOI,
-      totalShortOI,
-      extremeFundingCount,
-      imbalancedMarkets,
-      volatilityScore,
-      oiImbalance: oiImbalance * 100,
-    };
-  };
-
-  const metrics = calculateRiskMetrics();
-
-  const getRiskLevel = (score: number) => {
-    if (score >= 75)
-      return {
-        label: "Critical",
-        color: "bg-red-500",
-        textColor: "text-red-500",
-      };
-    if (score >= 50)
-      return {
-        label: "High",
-        color: "bg-orange-500",
-        textColor: "text-orange-500",
-      };
-    if (score >= 25)
-      return {
-        label: "Medium",
-        color: "bg-yellow-500",
-        textColor: "text-yellow-500",
-      };
-    return { label: "Low", color: "bg-green-500", textColor: "text-green-500" };
-  };
-
-  const riskLevel = getRiskLevel(metrics.overallRisk);
-
-  // Find highest risk markets
-  const marketRisks = Object.entries(currentRates.data)
-    .map(([market, rate]) => {
-      const longOI = parseFloat(rate.longOI) / 1e6;
-      const shortOI = parseFloat(rate.shortOI) / 1e6;
-      const totalOI = longOI + shortOI;
-
-      if (totalOI === 0) return null;
-
-      const ratio =
-        longOI > shortOI ? longOI / (shortOI || 1) : shortOI / (longOI || 1);
-      const fundingExtreme = Math.abs(rate.fundingRate);
-
-      // Market-specific risk score
-      let risk = 0;
-      if (ratio > 10) risk += 40;
-      else if (ratio > 5) risk += 25;
-      else if (ratio > 3) risk += 15;
-
-      if (fundingExtreme > 200) risk += 40;
-      else if (fundingExtreme > 100) risk += 25;
-      else if (fundingExtreme > 50) risk += 15;
-
-      // Misalignment bonus
-      if (
-        (longOI > shortOI && rate.fundingRate < 0) ||
-        (shortOI > longOI && rate.fundingRate > 0)
-      ) {
-        risk += 20;
-      }
-
-      return { market, risk: Math.min(100, risk), totalOI };
-    })
-    .filter((d) => d !== null && d.risk > 30)
-    .sort((a, b) => b!.risk - a!.risk)
-    .slice(0, 5);
-
-  const longOIPercent = (
-    (metrics.totalLongOI / (metrics.totalLongOI + metrics.totalShortOI)) *
-    100
-  ).toFixed(2);
-  const shortOIPercent = (
-    (metrics.totalShortOI / (metrics.totalLongOI + metrics.totalShortOI)) *
-    100
-  ).toFixed(2);
+  // Use the shared data processor with destructuring
+  const {
+    overallRisk,
+    totalLongOI,
+    totalShortOI,
+    extremeFundingCount,
+    imbalancedMarkets,
+    volatilityScore,
+    oiImbalance,
+    longOIPercent,
+    shortOIPercent,
+    riskLevel,
+    marketRisks,
+  } = processRiskDashboard(currentRates, historicalData);
 
   return (
     <Card className="flex flex-col">
@@ -190,9 +48,9 @@ export default function RiskDashboard({
           <div className="w-full bg-gray-200 rounded-full h-5">
             <div
               className={`h-5 rounded-full flex items-center justify-center text-white text-xs font-bold transition-all ${riskLevel.color}`}
-              style={{ width: `${metrics.overallRisk}%` }}
+              style={{ width: `${overallRisk}%` }}
             >
-              {metrics.overallRisk.toFixed(0)}%
+              {overallRisk.toFixed(0)}%
             </div>
           </div>
         </div>
@@ -211,7 +69,7 @@ export default function RiskDashboard({
               </div>
             </div>
             <p className="text-lg font-bold">
-              {metrics.oiImbalance.toFixed(1)}%
+              {oiImbalance.toFixed(1)}%
             </p>
           </div>
           <div className="bg-gray-50 rounded-lg p-3">
@@ -226,7 +84,7 @@ export default function RiskDashboard({
               </div>
             </div>
             <p className="text-lg font-bold">
-              {metrics.extremeFundingCount} markets
+              {extremeFundingCount} markets
             </p>
           </div>
           <div className="bg-gray-50 rounded-lg p-3">
@@ -241,7 +99,7 @@ export default function RiskDashboard({
               </div>
             </div>
             <p className="text-lg font-bold">
-              {metrics.imbalancedMarkets} markets
+              {imbalancedMarkets} markets
             </p>
           </div>
           <div className="bg-gray-50 rounded-lg p-3">
@@ -256,7 +114,7 @@ export default function RiskDashboard({
               </div>
             </div>
             <p className="text-lg font-bold">
-              {metrics.volatilityScore.toFixed(1)}
+              {volatilityScore.toFixed(1)}
             </p>
           </div>
         </div>
@@ -273,28 +131,18 @@ export default function RiskDashboard({
                 <div
                   className="bg-green-500 h-full rounded-l-full flex items-center justify-center text-xs font-bold text-white"
                   style={{
-                    width: `${
-                      (metrics.totalLongOI /
-                        (metrics.totalLongOI + metrics.totalShortOI)) *
-                      100
-                    }%`,
+                    width: `${longOIPercent}%`,
                   }}
                 >
-                  ${(metrics.totalLongOI / 1000).toFixed(0)}k (${longOIPercent}
-                  %)
+                  ${(totalLongOI / 1000).toFixed(0)}k ({longOIPercent.toFixed(2)}%)
                 </div>
                 <div
                   className="bg-red-500 h-full rounded-r-full flex items-center justify-center text-xs font-bold text-white"
                   style={{
-                    width: `${
-                      (metrics.totalShortOI /
-                        (metrics.totalLongOI + metrics.totalShortOI)) *
-                      100
-                    }%`,
+                    width: `${shortOIPercent}%`,
                   }}
                 >
-                  ${(metrics.totalShortOI / 1000).toFixed(0)}k ({shortOIPercent}
-                  %)
+                  ${(totalShortOI / 1000).toFixed(0)}k ({shortOIPercent.toFixed(2)}%)
                 </div>
               </div>
             </div>
@@ -310,29 +158,29 @@ export default function RiskDashboard({
           <div className="space-y-2">
             {marketRisks.map((item) => (
               <div
-                key={item!.market}
+                key={item.market}
                 className="flex items-center justify-between py-1"
               >
                 <span className="text-sm font-bold">
-                  {item!.market.replace("perps/", "").toUpperCase()}
+                  {item.market.replace("perps/", "").toUpperCase()}
                 </span>
                 <div className="flex items-center">
                   <div className="w-24 bg-gray-200 rounded-full h-2 mr-2">
                     <div
                       className={`h-2 rounded-full ${
-                        item!.risk >= 75
+                        item.risk >= 75
                           ? "bg-red-500"
-                          : item!.risk >= 50
+                          : item.risk >= 50
                           ? "bg-orange-500"
-                          : item!.risk >= 25
+                          : item.risk >= 25
                           ? "bg-yellow-500"
                           : "bg-green-500"
                       }`}
-                      style={{ width: `${item!.risk}%` }}
+                      style={{ width: `${item.risk}%` }}
                     />
                   </div>
                   <span className="text-xs text-muted-foreground">
-                    {item!.risk}%
+                    {item.risk}%
                   </span>
                 </div>
               </div>
