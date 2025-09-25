@@ -1,13 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { TimeFrame } from "../../services/bvb";
-import TimeFrameSelector from "./TimeFrameSelector";
+import ControlsSelector from "./ControlsSelector";
 import FundingRateChart from "./FundingRateChart";
 import OpenInterestChart from "./OpenInterestChart";
 import PriceChart from "./PriceChart";
 import FundingRateAlerts from "./FundingRateAlerts";
 import { HistoricalDataEntry } from "../types/dashboardClient";
+import { createSelectOptions } from "./shared/chartUtils";
 
 interface DashboardClientProps {
   historicalData15min: HistoricalDataEntry[];
@@ -29,6 +30,14 @@ export default function DashboardClient({
   const [selectedTimeFrame, setSelectedTimeFrame] =
     useState<TimeFrame>("1 hour");
 
+  // Unified single market selection state
+  const [selectedMarket, setSelectedMarket] = useState<string>(
+    defaultOIMarket ||
+      (defaultChartMarkets && defaultChartMarkets.length > 0
+        ? defaultChartMarkets[0]
+        : "")
+  );
+
   // Get the appropriate historical data based on selected timeframe
   const getHistoricalDataForTimeFrame = (
     timeFrame: TimeFrame
@@ -48,19 +57,43 @@ export default function DashboardClient({
   const currentHistoricalData =
     getHistoricalDataForTimeFrame(selectedTimeFrame);
 
+  // Get all unique markets for market selector
+  const allMarkets = useMemo(() => {
+    return Array.from(
+      new Set(
+        currentHistoricalData && currentHistoricalData.length > 0
+          ? currentHistoricalData.flatMap((entry) => Object.keys(entry.data))
+          : []
+      )
+    ).sort();
+  }, [currentHistoricalData]);
+
+  // Market selector options and handlers
+  const marketOptions = useMemo(() => {
+    return createSelectOptions(allMarkets);
+  }, [allMarkets]);
+
+
+  const handleMarketChange = (market: string) => {
+    setSelectedMarket(market);
+  };
+
   return (
     <>
-      <TimeFrameSelector
+      <ControlsSelector
         selectedTimeFrame={selectedTimeFrame}
         onTimeFrameChange={setSelectedTimeFrame}
+        selectedMarket={selectedMarket}
+        onMarketChange={handleMarketChange}
+        marketOptions={marketOptions}
       />
 
       {/* First Row: Alerts and Funding Rate Trends */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 lg:items-stretch">
         <div className="flex flex-col">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+          {/* <h2 className="text-lg font-semibold text-gray-800 mb-4">
             Funding Rate Alerts ({selectedTimeFrame})
-          </h2>
+          </h2> */}
           <FundingRateAlerts
             historicalData={currentHistoricalData}
             currentRates={currentRates}
@@ -68,13 +101,13 @@ export default function DashboardClient({
           />
         </div>
         <div className="flex flex-col">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+          {/* <h2 className="text-lg font-semibold text-gray-800 mb-4">
             Open Interest Comparison ({selectedTimeFrame})
-          </h2>
+          </h2> */}
           <div className="flex-1">
             <OpenInterestChart
               historicalData={currentHistoricalData}
-              initialSelectedMarket={defaultOIMarket}
+              selectedMarket={selectedMarket}
             />
           </div>
         </div>
@@ -83,24 +116,24 @@ export default function DashboardClient({
       {/* Second Row: Open Interest and Price Trends */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:items-stretch">
         <div className="flex flex-col">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+          {/* <h2 className="text-lg font-semibold text-gray-800 mb-4">
             Funding Rate Trends ({selectedTimeFrame})
-          </h2>
+          </h2> */}
           <div className="flex-1">
             <FundingRateChart
               historicalData={currentHistoricalData}
-              initialSelectedMarkets={defaultChartMarkets}
+              selectedMarket={selectedMarket}
             />
           </div>
         </div>
         <div className="flex flex-col">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+          {/* <h2 className="text-lg font-semibold text-gray-800 mb-4">
             Price Movement ({selectedTimeFrame})
-          </h2>
+          </h2> */}
           <div className="flex-1">
             <PriceChart
               historicalData={currentHistoricalData}
-              initialSelectedMarkets={defaultChartMarkets}
+              selectedMarket={selectedMarket}
             />
           </div>
         </div>

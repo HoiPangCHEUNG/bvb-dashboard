@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useMemo } from "react";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
-import Select, { MultiValue } from "react-select";
 import {
   Card,
   CardContent,
@@ -16,24 +15,18 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import {
-  FundingRateEntry,
   HistoricalDataEntry,
-  SelectOption,
-  createSelectOptions,
-  createSelectedOptions,
-  handleMarketSelectionChange,
   generateChartConfig,
-  selectStyles,
 } from "./shared/chartUtils";
 
 interface FundingRateChartProps {
   historicalData: HistoricalDataEntry[];
-  initialSelectedMarkets?: string[];
+  selectedMarket?: string;
 }
 
 export default function FundingRateChart({
   historicalData,
-  initialSelectedMarkets,
+  selectedMarket,
 }: FundingRateChartProps) {
   // Get all unique markets (safe even if historicalData is empty)
   const allMarkets = Array.from(
@@ -44,12 +37,8 @@ export default function FundingRateChart({
     )
   ).sort();
 
-  // State for selected markets - must be before any returns
-  const [selectedMarkets, setSelectedMarkets] = useState<string[]>(
-    initialSelectedMarkets && initialSelectedMarkets.length > 0
-      ? initialSelectedMarkets
-      : allMarkets.slice(0, 5)
-  );
+  // Use provided selected market or fallback to first market
+  const marketToShow = selectedMarket || allMarkets[0];
 
   // Transform data for recharts - move before early return
   const chartData = useMemo(() => {
@@ -65,37 +54,21 @@ export default function FundingRateChart({
         timestamp: entry.timestamp,
       };
 
-      selectedMarkets.forEach((market) => {
-        dataPoint[market] = entry.data[market]?.fundingRate || 0;
-      });
+      dataPoint[marketToShow] = entry.data[marketToShow]?.fundingRate || 0;
 
       return dataPoint;
     });
-  }, [historicalData, selectedMarkets]);
+  }, [historicalData, marketToShow]);
 
-  // Prepare options for react-select
-  const selectOptions = useMemo((): SelectOption[] => {
-    return createSelectOptions(allMarkets);
-  }, [allMarkets]);
-
-  const selectedOptions = useMemo((): SelectOption[] => {
-    return createSelectedOptions(selectedMarkets);
-  }, [selectedMarkets]);
-
-  // Generate chart config - move before early return
+  // Generate chart config
   const chartConfig = useMemo(() => {
-    return generateChartConfig(selectedMarkets) as ChartConfig;
-  }, [selectedMarkets]);
+    return generateChartConfig([marketToShow]) as ChartConfig;
+  }, [marketToShow]);
 
   // Early return after hooks
   if (!historicalData || historicalData.length === 0) {
     return <div>No funding rate data available</div>;
   }
-
-  // Handle market selection with react-select
-  const handleMarketChange = (selectedOptions: MultiValue<SelectOption>) => {
-    handleMarketSelectionChange(selectedOptions, setSelectedMarkets);
-  };
 
   return (
     <Card className="w-full">
@@ -103,24 +76,6 @@ export default function FundingRateChart({
         <CardDescription>
           Annualized funding rates for selected perpetual futures markets.
         </CardDescription>
-        <div className="mt-4">
-          <div className="mb-2">
-            <label className="block text-sm font-medium text-gray-900 mb-2">
-              Select Markets
-            </label>
-            <Select
-              isMulti
-              value={selectedOptions}
-              onChange={handleMarketChange}
-              options={selectOptions}
-              placeholder="Select markets..."
-              className="basic-multi-select"
-              classNamePrefix="select"
-              closeMenuOnSelect={false}
-              styles={selectStyles}
-            />
-          </div>
-        </div>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="w-full">
@@ -173,16 +128,13 @@ export default function FundingRateChart({
               }
               cursor={false}
             />
-            {selectedMarkets.map((market) => (
-              <Line
-                key={market}
-                dataKey={market}
-                type="monotone"
-                stroke={chartConfig[market]?.color}
-                strokeWidth={2}
-                dot={false}
-              />
-            ))}
+            <Line
+              dataKey={marketToShow}
+              type="monotone"
+              stroke={chartConfig[marketToShow]?.color}
+              strokeWidth={2}
+              dot={false}
+            />
           </LineChart>
         </ChartContainer>
       </CardContent>
