@@ -28,7 +28,7 @@ export default function DashboardClient({
   defaultOIMarket,
 }: DashboardClientProps) {
   const [selectedTimeFrame, setSelectedTimeFrame] =
-    useState<TimeFrame>("1 hour");
+    useState<TimeFrame>("4 hour");
 
   // Unified single market selection state
   const [selectedMarket, setSelectedMarket] = useState<string>(
