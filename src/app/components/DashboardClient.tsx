@@ -73,7 +73,6 @@ export default function DashboardClient({
     return createSelectOptions(allMarkets);
   }, [allMarkets]);
 
-
   const handleMarketChange = (market: string) => {
     setSelectedMarket(market);
   };
@@ -91,9 +90,6 @@ export default function DashboardClient({
       {/* First Row: Alerts and Funding Rate Trends */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 lg:items-stretch">
         <div className="flex flex-col">
-          {/* <h2 className="text-lg font-semibold text-gray-800 mb-4">
-            Funding Rate Alerts ({selectedTimeFrame})
-          </h2> */}
           <FundingRateAlerts
             historicalData={currentHistoricalData}
             currentRates={currentRates}
@@ -101,9 +97,6 @@ export default function DashboardClient({
           />
         </div>
         <div className="flex flex-col">
-          {/* <h2 className="text-lg font-semibold text-gray-800 mb-4">
-            Open Interest Comparison ({selectedTimeFrame})
-          </h2> */}
           <div className="flex-1">
             <OpenInterestChart
               historicalData={currentHistoricalData}
@@ -116,9 +109,6 @@ export default function DashboardClient({
       {/* Second Row: Open Interest and Price Trends */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:items-stretch">
         <div className="flex flex-col">
-          {/* <h2 className="text-lg font-semibold text-gray-800 mb-4">
-            Funding Rate Trends ({selectedTimeFrame})
-          </h2> */}
           <div className="flex-1">
             <FundingRateChart
               historicalData={currentHistoricalData}
@@ -127,9 +117,6 @@ export default function DashboardClient({
           </div>
         </div>
         <div className="flex flex-col">
-          {/* <h2 className="text-lg font-semibold text-gray-800 mb-4">
-            Price Movement ({selectedTimeFrame})
-          </h2> */}
           <div className="flex-1">
             <PriceChart
               historicalData={currentHistoricalData}
