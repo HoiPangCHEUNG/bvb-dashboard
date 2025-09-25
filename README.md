@@ -1,6 +1,6 @@
-# BVB Funding Rate Dashboard
+# [BVB Funding Rate Dashboard](https://bvb-dashboard.vercel.app/dashboard)
 
-A funding rate monitoring dashboard for BVB ([Bull vs. Bear](https://bullbear.zone/)) markets on Neutron blockchain. Features automated data collection every 15 minutes, multiple timeframes, and comprehensive risk analysis. No wallet or whatsoever needed, just install and run.
+A comprehensive funding rate monitoring dashboard for BVB ([Bull vs. Bear](https://bullbear.zone/)) markets on Neutron blockchain. Features automated data collection every 15 minutes, AI-powered analysis, multiple timeframes, and comprehensive risk assessment tools. No wallet or whatsoever needed, just install and run.
 
 > **Disclaimer**: This is a fan-made project. The author/maintainers have no affiliation with the BvB platform itself.
 
@@ -9,21 +9,8 @@ A funding rate monitoring dashboard for BVB ([Bull vs. Bear](https://bullbear.zo
 - 📊 **Funding Rate Tracking**: Monitor funding rates across all BVB markets (updated every 15 minutes)
 - 📈 **Visualized Charts**: Dynamic funding rate and open interest visualization
 - 🚨 **Risk Analysis**: Market sentiment, squeeze potential, and concentration risk metrics
+- 🤖 **AI Chat Assistant**: Real-time market analysis and insights powered by Mistral AI
 - ⚡ **Automated Data Collection**: Cron job fetches data every 15 minutes
-
-## Screenshots
-
-### Main Dashboard Overview
-
-![Dashboard Overview](assets/dashboard-overview.png)
-
-_The main dashboard showing market sentiment analysis, risk dashboard, funding rate alerts, and squeeze potential analysis._
-
-### Charts and Analysis
-
-![Charts and Analysis](assets/charts-analysis.png)
-
-_Interactive funding rate trends and open interest analysis with time frame selection and detailed market data._
 
 ## Architecture
 
@@ -73,6 +60,9 @@ MONGODB_URI=mongodb+srv://<username>:<password>@<domain>/?retryWrites=true&w=maj
 
 # Neutron RPC URL (optional - will use random public RPC if not set)
 NEUTRON_RPC_URL=https://rpc-lb.neutron.org
+
+# AI Configuration (required for AI chat functionality)
+MISTRAL_API_KEY=your_mistral_api_key_here
 ```
 
 ### Development
@@ -132,11 +122,36 @@ pm2 delete funding-rate-cron
 ```
 src/
 ├── app/
-│   ├── components/          # React components
-│   ├── dashboard/           # Main dashboard page
-│   ├── utils/              # Utility functions
-│   └── constant/           # Configuration constants
-└── cron/                   # Automated data collection
+│   ├── api/                # API routes
+│   │   ├── chat/           # AI chat endpoint
+│   │   └── analyze-data/   # Data analysis endpoint
+│   ├── components/         # React components
+│   │   ├── AiChatSidebar.tsx      # AI chat interface
+│   │   ├── DashboardClient.tsx    # Main dashboard client
+│   │   ├── DashboardWrapper.tsx   # Data provider wrapper
+│   │   ├── FundingRateChart.tsx   # Funding rate visualization
+│   │   ├── OpenInterestChart.tsx  # Open interest visualization
+│   │   ├── PriceChart.tsx         # Price chart component
+│   │   ├── RiskDashboard.tsx      # Risk metrics dashboard
+│   │   ├── MarketSentiment.tsx    # Market sentiment analysis
+│   │   ├── SqueezePotential.tsx   # Squeeze detection
+│   │   ├── OIConcentrationRisk.tsx # Open interest concentration
+│   │   └── ...                    # Other UI components
+│   ├── dashboard/          # Dashboard page
+│   ├── constant/           # Configuration constants
+│   └── types/              # TypeScript type definitions
+├── components/ui/          # Shadcn/UI components
+├── contexts/               # React contexts
+├── cron/                   # Automated data collection
+│   ├── fetchFundingRates.ts # Data fetching logic
+│   └── scheduler.ts         # Cron job scheduler
+├── hooks/                  # Custom React hooks
+├── lib/                    # Library utilities
+├── services/               # External service integrations
+│   ├── bvb.ts              # BVB API integration
+│   ├── mistral.ts          # Mistral AI integration
+│   └── mongodb.ts          # MongoDB connection
+└── utils/                  # Data processing utilities
 ```
 
 ## Data Flow
@@ -149,7 +164,7 @@ src/
 
 ## Key Components
 
-### Risk Analysis
+### Dashboard Features
 
 - **Market Sentiment**: Overall market direction analysis
 - **Squeeze Potential**: Identifies potential short/long squeezes
@@ -158,11 +173,23 @@ src/
 - **Funding Rate Trend**: Tracks funding rates over time
 - **Open Interest Analysis**: Visualizes open interest trends
 
+### AI Chat Assistant
+
+- **Real-time Analysis**: AI-powered interpretation of current market data
+- **Market Insights**: Professional financial analysis and commentary
+- **Contextual Responses**: Chat responses based on live funding rate and open interest data
+- **Streaming Responses**: Real-time message delivery for smooth user experience
+- **Data Integration**: Direct access to processed market sentiment, squeeze potential, and risk metrics
+- **Professional Context**: Configured as a financial data analyst for accurate market commentary
+
 ## Tech Stack
 
-- **Frontend**: Next.js 15, React 19, TailwindCSS
+- **Frontend**: Next.js 15, React 19, TailwindCSS, Shadcn/UI
 - **Database**: MongoDB with native Node.js driver
 - **Blockchain**: CosmJS for Neutron integration
+- **AI**: Mistral AI for chat functionality and market analysis
+- **Styling**: TailwindCSS with custom animations
+- **Process Management**: PM2 for cron job scheduling
 
 ## Disclaimer
 

@@ -8,7 +8,7 @@ import DashboardClient from "../components/DashboardClient";
 import GitHubButton from "../components/GitHubButton";
 import { DashboardProvider } from "../components/DashboardWrapper";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/app/components/AppSidebar";
+import { AiChatSidebar } from "@/app/components/AiChatSidebar";
 import { SidebarToggle } from "@/app/components/SidebarToggle";
 
 export default async function DashboardPage() {
@@ -36,7 +36,7 @@ export default async function DashboardPage() {
 
   const currentRates = historicalData15min[historicalData15min.length - 1] || {
     timestamp: Date.now(),
-    data: {}
+    data: {},
   };
 
   // Default selected markets for the funding rate chart
@@ -92,12 +92,14 @@ export default async function DashboardPage() {
 
                 {/* Top Funding Rates Table */}
                 <div className="mt-8">
-                  <TopFundingRatesTable currentRates={currentRates?.data || {}} />
+                  <TopFundingRatesTable
+                    currentRates={currentRates?.data || {}}
+                  />
                 </div>
               </div>
             </div>
           </main>
-          <AppSidebar />
+          <AiChatSidebar />
         </div>
         <SidebarToggle />
       </DashboardProvider>

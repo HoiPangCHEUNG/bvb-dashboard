@@ -27,7 +27,7 @@ interface ChatMessage {
   timestamp: Date;
 }
 
-export function AppSidebar() {
+export function AiChatSidebar() {
   const { historicalData15min, historicalData4hour } = useDashboardData();
 
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -199,7 +199,13 @@ export function AppSidebar() {
                     )}
                     <div className="prose prose-sm max-w-none">
                       {message.role === "assistant" ? (
-                        <ReactMarkdown>{message.content}</ReactMarkdown>
+                        <ReactMarkdown
+                          components={{
+                            p: ({ children }) => <p className="mb-3">{children}</p>,
+                          }}
+                        >
+                          {message.content}
+                        </ReactMarkdown>
                       ) : (
                         <div className="whitespace-pre-wrap">
                           {message.content}
