@@ -9,6 +9,16 @@ function Tabs({
   className,
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.Root>) {
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return <div className={cn("flex flex-col gap-2", className)} />
+  }
+
   return (
     <TabsPrimitive.Root
       data-slot="tabs"

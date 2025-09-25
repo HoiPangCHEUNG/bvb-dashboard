@@ -3,7 +3,11 @@
 import React, { useState } from "react";
 import { HistoricalDataEntry } from "../types/dashboardClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { processOIConcentration, getRiskColor, getRiskLabel } from "../../utils/dataProcessors";
+import {
+  processOIConcentration,
+  getRiskColor,
+  getRiskLabel,
+} from "../../utils/dataProcessors";
 
 interface OIConcentrationRiskProps {
   currentRates: HistoricalDataEntry;
@@ -21,7 +25,9 @@ export default function OIConcentrationRisk({
   const concentrationData = processOIConcentration(currentRates);
 
   // Summary statistics
-  const criticalRisk = concentrationData.filter((d) => d.riskScore >= 80).length;
+  const criticalRisk = concentrationData.filter(
+    (d) => d.riskScore >= 80
+  ).length;
   const highRisk = concentrationData.filter(
     (d) => d.riskScore >= 60 && d.riskScore < 80
   ).length;
@@ -91,44 +97,6 @@ export default function OIConcentrationRisk({
           </div>
         </div>
 
-        <div className="mb-4 border-t pt-4">
-          <div className="flex items-center gap-2 mb-3">
-            <input
-              type="text"
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              placeholder="Ask about the concentration data..."
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-muted-foreground"
-              onKeyDown={(e) => e.key === "Enter" && analyzeData()}
-            />
-            <button
-              onClick={analyzeData}
-              disabled={isLoading || !question.trim()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? "Analyzing..." : "Ask AI"}
-            </button>
-          </div>
-
-          {showAnalysis && (
-            <div className="bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-medium">AI Analysis</h4>
-                <button
-                  onClick={() => setShowAnalysis(false)}
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  ✕
-                </button>
-              </div>
-              <div className="text-sm whitespace-pre-wrap">
-                {response || (isLoading && "Analyzing your data...")}
-                {isLoading && <span className="animate-pulse">▋</span>}
-              </div>
-            </div>
-          )}
-        </div>
-
         <div className="overflow-x-auto overflow-y-visible">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50 relative">
@@ -191,9 +159,7 @@ export default function OIConcentrationRisk({
                             <div
                               className="bg-green-500 h-full rounded-l-full"
                               style={{
-                                width: `${
-                                  (data.longOI / data.totalOI) * 100
-                                }%`,
+                                width: `${(data.longOI / data.totalOI) * 100}%`,
                               }}
                             />
                             <div

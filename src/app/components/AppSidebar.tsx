@@ -207,9 +207,10 @@ export function AppSidebar() {
                       )}
                     </div>
                     <div className={`text-xs mt-1 opacity-70`}>
-                      {message.timestamp.toLocaleTimeString([], {
+                      {message.timestamp.toLocaleTimeString("en-US", {
                         hour: "2-digit",
                         minute: "2-digit",
+                        hour12: false,
                       })}
                     </div>
                   </div>
