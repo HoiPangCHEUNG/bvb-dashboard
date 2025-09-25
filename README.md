@@ -1,4 +1,4 @@
-# BVB Funding Rate Dashboard
+# [BVB Funding Rate Dashboard](https://bvb-dashboard.vercel.app/dashboard)
 
 A comprehensive funding rate monitoring dashboard for BVB ([Bull vs. Bear](https://bullbear.zone/)) markets on Neutron blockchain. Features automated data collection every 15 minutes, AI-powered analysis, multiple timeframes, and comprehensive risk assessment tools. No wallet or whatsoever needed, just install and run.
 
