@@ -14,7 +14,7 @@ export default function TimeFrameSelector({
   selectedTimeFrame,
   onTimeFrameChange,
 }: TimeFrameSelectorProps) {
-  const timeFrameOptions: {
+  const updateIntervals: {
     value: TimeFrame;
     label: string;
     description: string;
@@ -22,17 +22,17 @@ export default function TimeFrameSelector({
     {
       value: "15 min",
       label: "15 Minutes",
-      description: "Show all data points (every 15 minutes)",
+      description: "Frequent",
     },
     {
       value: "1 hour",
       label: "1 Hour",
-      description: "Show first entry of each hour",
+      description: "Normal",
     },
     {
       value: "4 hour",
       label: "4 Hours",
-      description: "Show first entry every 4 hours",
+      description: "Default",
     },
   ];
 
@@ -48,7 +48,7 @@ export default function TimeFrameSelector({
           className="w-full"
         >
           <TabsList className="grid w-full grid-cols-3 h-auto">
-            {timeFrameOptions.map((option) => (
+            {updateIntervals.map((option) => (
               <TabsTrigger
                 key={option.value}
                 value={option.value}
