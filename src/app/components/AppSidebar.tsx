@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Send, MessageCircle, Bot, Trash2 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 
 import {
   processMarketSentiment,
@@ -148,7 +149,7 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar side="right" className="w-80">
+    <Sidebar side="right" className="w-96">
       <SidebarHeader>
         <div className="px-4 py-4 border-b border-sidebar-border">
           <div className="flex items-center justify-between">
@@ -197,7 +198,13 @@ export function AppSidebar() {
                         <span className="text-xs font-medium">AI</span>
                       </div>
                     )}
-                    <div className="whitespace-pre-wrap">{message.content}</div>
+                    <div className="prose prose-sm max-w-none">
+                      {message.role === "assistant" ? (
+                        <ReactMarkdown>{message.content}</ReactMarkdown>
+                      ) : (
+                        <div className="whitespace-pre-wrap">{message.content}</div>
+                      )}
+                    </div>
                     <div className={`text-xs mt-1 opacity-70`}>
                       {message.timestamp.toLocaleTimeString([], {
                         hour: "2-digit",

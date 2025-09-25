@@ -18,7 +18,7 @@ export function SidebarToggle() {
         "transition-all duration-300 ease-in-out",
         // Position based on sidebar state
         open && !isMobile
-          ? "right-[21rem]" // Move left when sidebar is open (sidebar width + margin)
+          ? "right-[25rem]" // Move left when sidebar is open (sidebar width + margin)
           : "right-6" // Default position when closed
       )}
     >

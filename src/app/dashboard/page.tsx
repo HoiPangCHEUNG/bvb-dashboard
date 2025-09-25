@@ -47,7 +47,7 @@ export default async function DashboardPage() {
   return (
     <SidebarProvider
       defaultOpen={false}
-      style={{ "--sidebar-width": "20rem" } as React.CSSProperties}
+      style={{ "--sidebar-width": "24rem" } as React.CSSProperties}
     >
       <DashboardProvider
         historicalData15min={historicalData15min}
