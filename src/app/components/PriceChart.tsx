@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
-import Select from "react-select";
+import Select, { MultiValue } from "react-select";
 import {
   Card,
   CardContent,
@@ -15,19 +15,16 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-
-interface FundingRateEntry {
-  fundingRate: number;
-  longOI: string;
-  shortOI: string;
-  price?: string;
-  timestamp: number;
-}
-
-interface HistoricalDataEntry {
-  timestamp: number;
-  data: Record<string, FundingRateEntry>;
-}
+import {
+  FundingRateEntry,
+  HistoricalDataEntry,
+  SelectOption,
+  createSelectOptions,
+  createSelectedOptions,
+  handleMarketSelectionChange,
+  generateChartConfig,
+  selectStyles,
+} from "./shared/chartUtils";
 
 interface PriceChartProps {
   historicalData: HistoricalDataEntry[];
@@ -78,44 +75,17 @@ export default function PriceChart({
   }, [historicalData, selectedMarkets]);
 
   // Prepare options for react-select
-  const selectOptions = useMemo(() => {
-    return allMarkets.map((market) => ({
-      value: market,
-      label: market.replace("perps/", "").toUpperCase(),
-    }));
+  const selectOptions = useMemo((): SelectOption[] => {
+    return createSelectOptions(allMarkets);
   }, [allMarkets]);
 
-  const selectedOptions = useMemo(() => {
-    return selectedMarkets.map((market) => ({
-      value: market,
-      label: market.replace("perps/", "").toUpperCase(),
-    }));
+  const selectedOptions = useMemo((): SelectOption[] => {
+    return createSelectedOptions(selectedMarkets);
   }, [selectedMarkets]);
 
   // Generate chart config - move before early return
   const chartConfig = useMemo(() => {
-    const colors = [
-      "var(--chart-1)",
-      "var(--chart-2)",
-      "var(--chart-3)",
-      "var(--chart-4)",
-      "var(--chart-5)",
-      "hsl(12, 76%, 61%)",
-      "hsl(173, 58%, 39%)",
-      "hsl(197, 37%, 24%)",
-      "hsl(43, 74%, 66%)",
-      "hsl(27, 87%, 67%)",
-    ];
-
-    const config: ChartConfig = {};
-    selectedMarkets.forEach((market, index) => {
-      config[market] = {
-        label: market.replace("perps/", "").toUpperCase(),
-        color: colors[index % colors.length],
-      };
-    });
-
-    return config;
+    return generateChartConfig(selectedMarkets) as ChartConfig;
   }, [selectedMarkets]);
 
   // Early return after hooks
@@ -124,9 +94,8 @@ export default function PriceChart({
   }
 
   // Handle market selection with react-select
-  const handleMarketChange = (selectedOptions: any) => {
-    const markets = selectedOptions ? selectedOptions.map((option: any) => option.value) : [];
-    setSelectedMarkets(markets);
+  const handleMarketChange = (selectedOptions: MultiValue<SelectOption>) => {
+    handleMarketSelectionChange(selectedOptions, setSelectedMarkets);
   };
 
   return (
@@ -149,32 +118,7 @@ export default function PriceChart({
               className="basic-multi-select"
               classNamePrefix="select"
               closeMenuOnSelect={false}
-              styles={{
-                control: (provided) => ({
-                  ...provided,
-                  minHeight: '40px',
-                  borderColor: '#d1d5db',
-                  '&:hover': {
-                    borderColor: '#9ca3af',
-                  },
-                }),
-                multiValue: (provided) => ({
-                  ...provided,
-                  backgroundColor: '#f3f4f6',
-                }),
-                multiValueLabel: (provided) => ({
-                  ...provided,
-                  color: '#374151',
-                  fontSize: '14px',
-                }),
-                multiValueRemove: (provided) => ({
-                  ...provided,
-                  '&:hover': {
-                    backgroundColor: '#ef4444',
-                    color: 'white',
-                  },
-                }),
-              }}
+              styles={selectStyles}
             />
           </div>
         </div>
@@ -213,7 +157,9 @@ export default function PriceChart({
                         className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
                         style={
                           {
-                            backgroundColor: chartConfig[name as keyof typeof chartConfig]?.color,
+                            backgroundColor:
+                              chartConfig[name as keyof typeof chartConfig]
+                                ?.color,
                           } as React.CSSProperties
                         }
                       />
