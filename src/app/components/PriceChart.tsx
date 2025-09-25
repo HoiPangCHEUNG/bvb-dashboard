@@ -2,13 +2,13 @@
 
 import React, { useState, useMemo } from "react";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
+import Select from "react-select";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   ChartConfig,
   ChartContainer,
@@ -77,6 +77,21 @@ export default function PriceChart({
     });
   }, [historicalData, selectedMarkets]);
 
+  // Prepare options for react-select
+  const selectOptions = useMemo(() => {
+    return allMarkets.map((market) => ({
+      value: market,
+      label: market.replace("perps/", "").toUpperCase(),
+    }));
+  }, [allMarkets]);
+
+  const selectedOptions = useMemo(() => {
+    return selectedMarkets.map((market) => ({
+      value: market,
+      label: market.replace("perps/", "").toUpperCase(),
+    }));
+  }, [selectedMarkets]);
+
   // Generate chart config - move before early return
   const chartConfig = useMemo(() => {
     const colors = [
@@ -108,18 +123,10 @@ export default function PriceChart({
     return <div>No price data available</div>;
   }
 
-  // Handle market selection
-  const handleMarketToggle = (market: string) => {
-    setSelectedMarkets((prev) => {
-      if (prev.includes(market)) {
-        return prev.filter((m) => m !== market);
-      } else {
-        if (prev.length >= 5) {
-          return prev;
-        }
-        return [...prev, market];
-      }
-    });
+  // Handle market selection with react-select
+  const handleMarketChange = (selectedOptions: any) => {
+    const markets = selectedOptions ? selectedOptions.map((option: any) => option.value) : [];
+    setSelectedMarkets(markets);
   };
 
   return (
@@ -129,41 +136,46 @@ export default function PriceChart({
           Price data for selected perpetual futures markets.
         </CardDescription>
         <div className="mt-4">
-          <div className="flex items-center justify-between mb-2">
-            <details className="cursor-pointer flex-grow">
-              <summary className="font-semibold text-gray-900 text-base">
-                Select Markets ({selectedMarkets.length} selected)
-              </summary>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 mt-2 p-2 border rounded">
-              {allMarkets.map((market) => (
-                <label
-                  key={market}
-                  className="flex items-center space-x-1 text-sm cursor-pointer hover:bg-gray-100 p-1 rounded"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedMarkets.includes(market)}
-                    onChange={() => handleMarketToggle(market)}
-                    disabled={!selectedMarkets.includes(market) && selectedMarkets.length >= 5}
-                    className="rounded text-blue-600 focus:ring-blue-500 disabled:opacity-50"
-                  />
-                  <span className="truncate text-gray-900 font-medium">
-                    {market.replace("perps/", "").toUpperCase()}
-                  </span>
-                </label>
-              ))}
-              </div>
-            </details>
-            {selectedMarkets.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {selectedMarkets.map((market) => (
-                  <Badge key={market} variant="secondary" className="cursor-pointer" onClick={() => handleMarketToggle(market)}>
-                    {market.replace("perps/", "").toUpperCase()}
-                    <span className="ml-1 text-xs">×</span>
-                  </Badge>
-                ))}
-              </div>
-            )}
+          <div className="mb-2">
+            <label className="block text-sm font-medium text-gray-900 mb-2">
+              Select Markets
+            </label>
+            <Select
+              isMulti
+              value={selectedOptions}
+              onChange={handleMarketChange}
+              options={selectOptions}
+              placeholder="Select markets..."
+              className="basic-multi-select"
+              classNamePrefix="select"
+              closeMenuOnSelect={false}
+              styles={{
+                control: (provided) => ({
+                  ...provided,
+                  minHeight: '40px',
+                  borderColor: '#d1d5db',
+                  '&:hover': {
+                    borderColor: '#9ca3af',
+                  },
+                }),
+                multiValue: (provided) => ({
+                  ...provided,
+                  backgroundColor: '#f3f4f6',
+                }),
+                multiValueLabel: (provided) => ({
+                  ...provided,
+                  color: '#374151',
+                  fontSize: '14px',
+                }),
+                multiValueRemove: (provided) => ({
+                  ...provided,
+                  '&:hover': {
+                    backgroundColor: '#ef4444',
+                    color: 'white',
+                  },
+                }),
+              }}
+            />
           </div>
         </div>
       </CardHeader>
