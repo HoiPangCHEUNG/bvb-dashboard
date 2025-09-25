@@ -34,11 +34,14 @@ export default async function DashboardPage() {
     .slice(0, 48)
     .reverse();
 
-  const currentRates = historicalData15min[historicalData15min.length - 1];
+  const currentRates = historicalData15min[historicalData15min.length - 1] || {
+    timestamp: Date.now(),
+    data: {}
+  };
 
   // Default selected markets for the funding rate chart
   const defaultChartMarkets = ["perps/ulink"].filter(
-    (market) => currentRates.data[market]
+    (market) => currentRates?.data?.[market]
   ); // Only include if they exist
 
   // Default market for OI analysis
@@ -89,7 +92,7 @@ export default async function DashboardPage() {
 
                 {/* Top Funding Rates Table */}
                 <div className="mt-8">
-                  <TopFundingRatesTable currentRates={currentRates.data} />
+                  <TopFundingRatesTable currentRates={currentRates?.data || {}} />
                 </div>
               </div>
             </div>
